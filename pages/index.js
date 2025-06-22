@@ -1,5 +1,6 @@
 import Header from '../components/Header';
 import MessageBoard from '../components/MessageBoard';
+import React, { useState, useEffect } from 'react';
 
 export default function Home() {
   return (
