@@ -53,13 +53,21 @@ export default function MessageBoard() {
     return () => observer.disconnect();
   }, [messages, activeId]);
 
-  /* 🔊 mute / unmute according to activeId + audioOn */
+  /* 🔊 ensure only active clip is un-muted AND playing */
   useEffect(() => {
     Object.entries(videoRefs.current).forEach(([id, el]) => {
       if (!el) return;
-      el.muted = !(audioOn && id === activeId);
+
+      const shouldHaveAudio = audioOn && id === activeId;
+      el.muted = !shouldHaveAudio;
+
+      if (shouldHaveAudio) {
+        // some browsers pause when we un-mute; make sure it plays
+        el.play().catch(() => {});  // ignore “already playing” errors
+      }
     });
   }, [audioOn, activeId]);
+
 
   /* 📨 new post */
   const post = async () => {
