@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   collection,
   addDoc,
@@ -21,6 +21,7 @@ export default function MessageBoard() {
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
+  const videoRefs = useRef({});
 
   useEffect(() => {
     const q = query(
@@ -143,13 +144,20 @@ export default function MessageBoard() {
 
               {msg.mediaUrl && msg.mediaType === 'video' && (
                 <video
+                  ref={el => videoRefs.current[msg.id] = el}
                   src={msg.mediaUrl}
-                  className="max-w-full rounded"
+                  className="max-w-full rounded cursor-pointer"
                   autoPlay
                   loop
                   muted
                   playsInline
                   controls={false}
+                  onClick={() => {
+                    const vid = videoRefs.current[msg.id];
+                    if (vid) {
+                      vid.muted = !vid.muted;
+                    }
+                  }}
                 />
               )}
             </div>
