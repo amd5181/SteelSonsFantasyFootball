@@ -6,6 +6,9 @@ import {
   orderBy,
   onSnapshot,
   serverTimestamp,
+  updateDoc,
+  doc,
+  increment,
 } from 'firebase/firestore';
 import {
   ref as storageRef,
@@ -14,46 +17,43 @@ import {
 } from 'firebase/storage';
 import { db, storage } from '../lib/firebase';
 
+const EMOJIS = ['👍', '😂', '🔥'];        // expand anytime
+
 export default function MessageBoard() {
   const [messages, setMessages] = useState([]);
-  const [author, setAuthor] = useState('');
+  const [author, setAuthor]     = useState('');
   const [newMessage, setNewMsg] = useState('');
-  const [file, setFile] = useState(null);
+  const [file, setFile]         = useState(null);
   const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError]         = useState('');
   const videoRefs = useRef({});
+  const [muteMap, setMuteMap] = useState({});   // msgId → bool (true = muted)
 
+  /* 🔄 live stream */
   useEffect(() => {
-    const q = query(
-      collection(db, 'posts'),
-      orderBy('createdAtLocal', 'desc')
+    const q = query(collection(db, 'posts'), orderBy('createdAtLocal', 'desc'));
+    return onSnapshot(q, snap =>
+      setMessages(snap.docs.map(d => ({ id: d.id, ...d.data() })))
     );
-    const unsub = onSnapshot(q, snap => {
-      setMessages(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
-    return unsub;
   }, []);
 
+  /* 📨 new post */
   const handlePost = async () => {
     setError('');
     const text = newMessage.trim();
     const name = author.trim();
     if (!text && !file) return;
-    if (!name) {
-      setError('Please enter your name.');
-      return;
-    }
+    if (!name)           { setError('Please enter your name.'); return; }
 
     setUploading(true);
-    let mediaUrl = '';
-    let mediaType = '';
+    let mediaUrl = '', mediaType = '';
 
     try {
       if (file) {
         const ext = file.name.split('.').pop();
         const ref = storageRef(storage, `posts/${Date.now()}.${ext}`);
         await uploadBytes(ref, file);
-        mediaUrl = await getDownloadURL(ref);
+        mediaUrl  = await getDownloadURL(ref);
         mediaType = file.type.startsWith('video') ? 'video' : 'image';
       }
 
@@ -62,25 +62,31 @@ export default function MessageBoard() {
         text,
         mediaUrl,
         mediaType,
+        reactions: {},                    // 👍 😂 🔥 counts live here
         createdAtLocal: Date.now(),
         createdAt: serverTimestamp(),
       });
 
-      setNewMsg('');
-      setFile(null);
+      setNewMsg(''); setFile(null);
     } catch (err) {
-      console.error(err);
-      setError('Upload failed. Try again.');
-    } finally {
-      setUploading(false);
-    }
+      console.error(err); setError('Upload failed. Try again.');
+    } finally { setUploading(false); }
+  };
+
+  /* 😀 react to a post */
+  const handleReact = async (id, emoji) => {
+    try {
+      await updateDoc(doc(db, 'posts', id), {
+        [`reactions.${emoji}`]: increment(1),
+      });
+    } catch (err) { console.error(err); }
   };
 
   return (
     <div className="bg-white text-black p-6 rounded-lg shadow-md">
       <h2 className="text-2xl font-bold mb-4">Message Board</h2>
 
-      {/* ✏️ Compose */}
+      {/* ✏️ compose */}
       <div className="space-y-2 mb-6">
         <input
           type="text"
@@ -120,7 +126,7 @@ export default function MessageBoard() {
         {error && <p className="text-red-600">{error}</p>}
       </div>
 
-      {/* 📜 Posts */}
+      {/* 📜 posts */}
       <div className="space-y-4">
         {messages.length === 0 ? (
           <p className="text-gray-500">No messages yet.</p>
@@ -128,12 +134,15 @@ export default function MessageBoard() {
           messages.map(msg => (
             <div key={msg.id} className="bg-gray-100 p-4 rounded-md">
               {msg.author && (
-                <p className="text-sm font-semibold text-gray-700 mb-1">{msg.author}</p>
+                <p className="text-sm font-semibold text-gray-700 mb-1">
+                  {msg.author}
+                </p>
               )}
               {msg.text && (
                 <p className="mb-2 whitespace-pre-wrap">{msg.text}</p>
               )}
 
+              {/* 🖼️ image */}
               {msg.mediaUrl && msg.mediaType === 'image' && (
                 <img
                   src={msg.mediaUrl}
@@ -142,24 +151,49 @@ export default function MessageBoard() {
                 />
               )}
 
+              {/* 🎥 video with mute toggle + watermark */}
               {msg.mediaUrl && msg.mediaType === 'video' && (
-                <video
-                  ref={el => videoRefs.current[msg.id] = el}
-                  src={msg.mediaUrl}
-                  className="max-w-full rounded cursor-pointer"
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  controls={false}
-                  onClick={() => {
-                    const vid = videoRefs.current[msg.id];
-                    if (vid) {
+                <div className="relative">
+                  <video
+                    ref={el => (videoRefs.current[msg.id] = el)}
+                    src={msg.mediaUrl}
+                    className="max-w-full rounded cursor-pointer"
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    controls={false}
+                    onClick={() => {
+                      const vid = videoRefs.current[msg.id];
+                      if (!vid) return;
                       vid.muted = !vid.muted;
-                    }
-                  }}
-                />
+                      setMuteMap(prev => ({ ...prev, [msg.id]: vid.muted }));
+                    }}
+                  />
+                  <div
+                    className="absolute top-1 right-1 bg-black/60 text-white text-xs
+                               px-1.5 py-0.5 rounded pointer-events-none select-none"
+                  >
+                    {muteMap[msg.id] ?? true ? '🔇' : '🔊'}
+                  </div>
+                </div>
               )}
+
+              {/* 😀 reactions */}
+              <div className="flex space-x-3 mt-2">
+                {EMOJIS.map(emoji => (
+                  <button
+                    key={emoji}
+                    className="flex items-center space-x-1 text-lg"
+                    onClick={() => handleReact(msg.id, emoji)}
+                  >
+                    <span>{emoji}</span>
+                    <span className="text-sm">
+                      {msg.reactions?.[emoji] ?? 0}
+                    </span>
+                  </button>
+                ))}
+              </div>
             </div>
           ))
         )}
