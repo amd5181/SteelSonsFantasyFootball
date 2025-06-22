@@ -1,0 +1,7 @@
+echo '[
+  {
+    "origin": ["https://steelsonsfantasyfootball.vercel.app"],
+    "method": ["GET", "POST", "PUT"],
+    "maxAgeSeconds": 3600
+  }
+]' > cors.json
