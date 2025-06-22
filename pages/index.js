@@ -4,12 +4,9 @@ import MessageBoard from '../components/MessageBoard';
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gray-100 text-gray-900 px-6 py-4">
+    <div className="min-h-screen bg-gray-900 text-white">
       <Header />
-      <main className="max-w-3xl mx-auto mt-8">
-        <h2 className="text-2xl font-semibold mb-4 border-b pb-2">
-          Message Board
-        </h2>
+      <main className="max-w-4xl mx-auto px-4 py-10">
         <MessageBoard />
       </main>
     </div>
