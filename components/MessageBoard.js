@@ -1,15 +1,15 @@
-// MessageBoard.jsx
-import React, { useEffect, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "./firebase"; // Adjust path as needed
+import { useEffect, useState } from "react";
+import { getFirestore, collection, getDocs } from "firebase/firestore";
+import { app } from "../firebase"; // adjust path if you're organizing files differently
 
 export default function MessageBoard() {
   const [posts, setPosts] = useState([]);
 
   useEffect(() => {
     const fetchPosts = async () => {
-      const snapshot = await getDocs(collection(db, "posts"));
-      const postsData = snapshot.docs.map(doc => doc.data());
+      const db = getFirestore(app);
+      const querySnapshot = await getDocs(collection(db, "posts"));
+      const postsData = querySnapshot.docs.map(doc => doc.data());
       setPosts(postsData);
     };
 
@@ -17,14 +17,14 @@ export default function MessageBoard() {
   }, []);
 
   return (
-    <div>
+    <div className="space-y-6 p-4">
       {posts.length === 0 ? (
-        <p>No posts yet</p>
+        <p>No posts yet.</p>
       ) : (
-        posts.map((post, idx) => (
-          <div key={idx} className="mb-4 border p-4 rounded shadow">
-            <h3 className="font-bold">{post.Author}</h3>
-            <p>{post.Content}</p>
+        posts.map((post, index) => (
+          <div key={index} className="border rounded-xl p-4 bg-white shadow">
+            <h3 className="font-bold">{post.author}</h3>
+            <p>{post.content}</p>
           </div>
         ))
       )}
