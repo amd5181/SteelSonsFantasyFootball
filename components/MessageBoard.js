@@ -53,28 +53,20 @@ export default function MessageBoard() {
     return () => observer.disconnect();
   }, [messages, activeId]);
 
+  /* 🔊 ensure only active clip is un-muted AND playing */
   useEffect(() => {
     Object.entries(videoRefs.current).forEach(([id, el]) => {
       if (!el) return;
 
-      const isActive = audioOn && id === activeId;
+      const shouldHaveAudio = audioOn && id === activeId;
+      el.muted = !shouldHaveAudio;
 
-      if (isActive) {
-        el.muted = false;
-
-        try {
-          el.currentTime = 0;  // force rewind
-          el.play();
-        } catch (err) {
-          console.error(`Could not play video ${id}:`, err);
-        }
-      } else {
-        el.pause();
-        el.muted = true;
+      if (shouldHaveAudio) {
+        // some browsers pause when we un-mute; make sure it plays
+        el.play().catch(() => {});  // ignore “already playing” errors
       }
     });
   }, [audioOn, activeId]);
-
 
 
   /* 📨 new post */
