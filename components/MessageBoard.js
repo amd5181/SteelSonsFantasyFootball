@@ -1,11 +1,20 @@
 'use client';
-import React, { useState, useEffect, useRef, Fragment } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
-  collection, addDoc, query, orderBy, onSnapshot, serverTimestamp,
-  updateDoc, doc, increment,
+  collection,
+  addDoc,
+  query,
+  orderBy,
+  onSnapshot,
+  serverTimestamp,
+  updateDoc,
+  doc,
+  increment,
 } from 'firebase/firestore';
 import {
-  ref as storageRef, uploadBytes, getDownloadURL,
+  ref as storageRef,
+  uploadBytes,
+  getDownloadURL,
 } from 'firebase/storage';
 import { db, storage } from '../lib/firebase';
 
@@ -13,16 +22,16 @@ const EMOJIS = ['❤️', '😂', '🔥', '👎'];
 
 export default function MessageBoard() {
   /* ── basic state ───────────────────────────────────────────── */
-  const [messages, setMessages]   = useState([]);
-  const [author,   setAuthor]     = useState('');
-  const [newMsg,   setNewMsg]     = useState('');
+  const [messages, setMessages] = useState([]);
+  const [author, setAuthor] = useState('');
+  const [newMsg, setNewMsg] = useState('');
 
   /* upload vs embed */
-  const [mode, setMode]           = useState<'upload' | 'embed'>('upload');
-  const [file, setFile]           = useState<File | null>(null);
-  const [embedURL, setEmbedURL]   = useState('');
+  const [mode, setMode] = useState('upload'); // ← fixed: plain JS
+  const [file, setFile] = useState(null);     // no File<> annotation
+  const [embedURL, setEmbedURL] = useState('');
 
-  const [err, setErr]             = useState('');
+  const [err, setErr] = useState('');
   const [uploading, setUploading] = useState(false);
 
   /* ── live stream ───────────────────────────────────────────── */
@@ -35,30 +44,46 @@ export default function MessageBoard() {
 
   /* 📨 new post */
   const post = async () => {
-    const text = newMsg.trim(), name = author.trim();
-    if (!text && mode === 'upload' && !file && mode === 'embed' && !embedURL.trim()) return;
-    if (!name) { setErr('Enter your name'); return; }
-    setUploading(true); setErr('');
+    const text = newMsg.trim();
+    const name = author.trim();
 
-    let mediaUrl = '', mediaType = '';
+    // nothing to post?
+    if (
+      !text &&
+      ((mode === 'upload' && !file) ||
+        (mode === 'embed' && !embedURL.trim()))
+    )
+      return;
+
+    if (!name) {
+      setErr('Enter your name');
+      return;
+    }
+
+    setUploading(true);
+    setErr('');
+
+    let mediaUrl = '';
+    let mediaType = '';
 
     try {
+      // upload flow
       if (mode === 'upload' && file) {
         const ext = file.name.split('.').pop();
         const ref = storageRef(storage, `posts/${Date.now()}.${ext}`);
         await uploadBytes(ref, file);
-        mediaUrl  = await getDownloadURL(ref);
+        mediaUrl = await getDownloadURL(ref);
         mediaType = file.type.startsWith('video') ? 'video' : 'image';
       }
 
+      // embed flow
       if (mode === 'embed' && embedURL.trim()) {
         mediaUrl = embedURL.trim();
         const isYouTube = /youtube\.com|youtu\.be/.test(mediaUrl);
-        const isVimeo   = /vimeo\.com/.test(mediaUrl);
-        const isImg     = /\.(gif|jpe?g|png|webp)$/i.test(mediaUrl);
+        const isVimeo = /vimeo\.com/.test(mediaUrl);
+        const isImg = /\.(gif|jpe?g|png|webp)$/i.test(mediaUrl);
 
         if (isYouTube) {
-          // convert to embed URL
           const id = mediaUrl.split(/v=|youtu\.be\//)[1]?.split(/[?&]/)[0];
           mediaUrl = `https://www.youtube.com/embed/${id}`;
           mediaType = 'embed-video';
@@ -69,13 +94,18 @@ export default function MessageBoard() {
         } else if (isImg) {
           mediaType = 'embed-image';
         } else {
-          mediaType = 'embed-image'; // fallback, let browser try
+          mediaType = 'embed-image';
         }
       }
 
+      // save post
       await addDoc(collection(db, 'posts'), {
-        author: name, text, mediaUrl, mediaType,
-        reactions: {}, createdAtLocal: Date.now(),
+        author: name,
+        text,
+        mediaUrl,
+        mediaType,
+        reactions: {},
+        createdAtLocal: Date.now(),
         createdAt: serverTimestamp(),
       });
 
@@ -106,7 +136,8 @@ export default function MessageBoard() {
         <input
           className="w-full border px-3 py-2 rounded-md focus:ring-2 ring-blue-500"
           placeholder="Your name"
-          value={author} onChange={e => setAuthor(e.target.value)}
+          value={author}
+          onChange={e => setAuthor(e.target.value)}
         />
 
         {/* mode switch */}
@@ -116,7 +147,9 @@ export default function MessageBoard() {
               key={m}
               onClick={() => setMode(m)}
               className={`px-3 py-1 rounded-full ${
-                mode === m ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'
+                mode === m
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-200 text-gray-700'
               }`}
             >
               {m === 'upload' ? 'Upload file' : 'Embed link'}
@@ -126,7 +159,8 @@ export default function MessageBoard() {
 
         {mode === 'upload' && (
           <input
-            type="file" accept="image/*,video/*"
+            type="file"
+            accept="image/*,video/*"
             onChange={e => setFile(e.target.files?.[0] || null)}
           />
         )}
@@ -143,14 +177,15 @@ export default function MessageBoard() {
         <input
           className="w-full border px-3 py-2 rounded-md focus:ring-2 ring-blue-500"
           placeholder="Type your message…"
-          value={newMsg} onChange={e => setNewMsg(e.target.value)}
+          value={newMsg}
+          onChange={e => setNewMsg(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && post()}
         />
 
         <button
-          onClick={post} disabled={uploading}
-          className="bg-blue-600 text-white px-4 py-2 rounded-md
-                     hover:bg-blue-700 disabled:opacity-50"
+          onClick={post}
+          disabled={uploading}
+          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
         >
           {uploading ? 'Posting…' : 'Post'}
         </button>
@@ -166,7 +201,9 @@ export default function MessageBoard() {
                 {msg.author}
               </p>
             )}
-            {msg.text && <p className="mb-2 whitespace-pre-wrap">{msg.text}</p>}
+            {msg.text && (
+              <p className="mb-2 whitespace-pre-wrap">{msg.text}</p>
+            )}
 
             {/* upload-image */}
             {msg.mediaUrl && msg.mediaType === 'image' && (
@@ -178,7 +215,11 @@ export default function MessageBoard() {
               <video
                 src={msg.mediaUrl}
                 className="w-full max-h-[95vh] md:w-[900px] md:max-h-[650px] rounded"
-                autoPlay loop muted playsInline controls
+                autoPlay
+                loop
+                muted
+                playsInline
+                controls
               />
             )}
 
@@ -203,14 +244,13 @@ export default function MessageBoard() {
             {/* reactions */}
             <div className="flex space-x-3 mt-2">
               {EMOJIS.map(e => (
-                <button key={e}
+                <button
+                  key={e}
                   className="flex items-center space-x-1 text-lg"
                   onClick={() => react(msg.id, e)}
                 >
                   <span>{e}</span>
-                  <span className="text-sm">
-                    {msg.reactions?.[e] ?? 0}
-                  </span>
+                  <span className="text-sm">{msg.reactions?.[e] ?? 0}</span>
                 </button>
               ))}
             </div>
