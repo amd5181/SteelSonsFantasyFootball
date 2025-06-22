@@ -91,7 +91,7 @@ export default function MessageBoard() {
   };
 
   /* 😀 react */
-  const react = (id: string, emoji: string) =>
+  const react = (id, emoji) =>
     updateDoc(doc(db, 'posts', id), {
       [`reactions.${emoji}`]: increment(1),
     }).catch(console.error);
