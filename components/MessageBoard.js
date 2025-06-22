@@ -157,7 +157,7 @@ export default function MessageBoard() {
                   <video
                     ref={el => (videoRefs.current[msg.id] = el)}
                     src={msg.mediaUrl}
-                    className="max-w-full max-h-[400px] md:max-h-[600px] rounded cursor-pointer"
+                    className="w-full aspect-video rounded overflow-hidden cursor-pointer"
                     autoPlay
                     loop
                     muted
