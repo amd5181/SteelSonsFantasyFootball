@@ -16,19 +16,23 @@ export default function MessageBoard() {
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
 
-  // 🔄 Stream posts in real-time
+  // 🔄 Stream posts in real-time with fallback sorting
   useEffect(() => {
-    const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
+    const q = query(
+      collection(db, 'posts'),
+      orderBy('createdAt', 'desc'),
+      orderBy('fallbackTime', 'desc')
+    );
     const unsub = onSnapshot(q, (snap) => {
       setMessages(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     });
     return unsub;
   }, []);
 
-  // 📤 Upload media (if chosen) and write post
+  // 📤 Upload media and write post
   const handlePost = async () => {
     const text = newMessage.trim();
-    if (!text && !file) return; // nothing to post
+    if (!text && !file) return;
 
     setUploading(true);
     let mediaUrl = '';
@@ -47,9 +51,9 @@ export default function MessageBoard() {
       mediaUrl,
       mediaType,
       createdAt: serverTimestamp(),
+      fallbackTime: Date.now()
     });
 
-    // Reset UI
     setNewMessage('');
     setFile(null);
     setUploading(false);
@@ -59,7 +63,6 @@ export default function MessageBoard() {
     <div className="bg-white text-black p-6 rounded-lg shadow-md">
       <h2 className="text-2xl font-bold mb-4">Message Board</h2>
 
-      {/* ✏️ Compose */}
       <div className="space-y-2 mb-6">
         <input
           type="text"
@@ -86,7 +89,6 @@ export default function MessageBoard() {
         </button>
       </div>
 
-      {/* 📜 Posts */}
       <div className="space-y-4">
         {messages.length === 0 ? (
           <p className="text-gray-500">No messages yet.</p>
