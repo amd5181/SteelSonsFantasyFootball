@@ -15,18 +15,17 @@ import {
 import { db, storage } from '../lib/firebase';
 
 export default function MessageBoard() {
-  /* UI state */
-  const [messages, setMessages]   = useState([]);
-  const [newMessage, setNewMsg]   = useState('');
-  const [file, setFile]           = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [author, setAuthor] = useState('');
+  const [newMessage, setNewMsg] = useState('');
+  const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
-  const [error, setError]         = useState('');
+  const [error, setError] = useState('');
 
-  /* 🔄 Live-stream posts (order by createdAtLocal) */
   useEffect(() => {
     const q = query(
       collection(db, 'posts'),
-      orderBy('createdAtLocal', 'desc')   // every doc gets this field
+      orderBy('createdAtLocal', 'desc')
     );
     const unsub = onSnapshot(q, snap => {
       setMessages(snap.docs.map(d => ({ id: d.id, ...d.data() })));
@@ -34,36 +33,38 @@ export default function MessageBoard() {
     return unsub;
   }, []);
 
-  /* 📤 Upload & post */
   const handlePost = async () => {
     setError('');
     const text = newMessage.trim();
+    const name = author.trim();
     if (!text && !file) return;
+    if (!name) {
+      setError('Please enter your name.');
+      return;
+    }
 
     setUploading(true);
     let mediaUrl = '';
     let mediaType = '';
 
     try {
-      /* Upload file if present */
       if (file) {
         const ext = file.name.split('.').pop();
-        const ref  = storageRef(storage, `posts/${Date.now()}.${ext}`);
+        const ref = storageRef(storage, `posts/${Date.now()}.${ext}`);
         await uploadBytes(ref, file);
-        mediaUrl  = await getDownloadURL(ref);
+        mediaUrl = await getDownloadURL(ref);
         mediaType = file.type.startsWith('video') ? 'video' : 'image';
       }
 
-      /* Write Firestore doc */
       await addDoc(collection(db, 'posts'), {
+        author: name,
         text,
         mediaUrl,
         mediaType,
-        createdAtLocal: Date.now(),   // always present → sorting works
-        createdAt: serverTimestamp(), // server authority
+        createdAtLocal: Date.now(),
+        createdAt: serverTimestamp(),
       });
 
-      /* reset form  */
       setNewMsg('');
       setFile(null);
     } catch (err) {
@@ -80,6 +81,15 @@ export default function MessageBoard() {
 
       {/* ✏️ Compose */}
       <div className="space-y-2 mb-6">
+        <input
+          type="text"
+          placeholder="Your name"
+          className="w-full border border-gray-300 px-3 py-2 rounded-md
+                     focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value={author}
+          onChange={e => setAuthor(e.target.value)}
+        />
+
         <input
           type="text"
           placeholder="Type your message…"
@@ -116,7 +126,12 @@ export default function MessageBoard() {
         ) : (
           messages.map(msg => (
             <div key={msg.id} className="bg-gray-100 p-4 rounded-md">
-              {msg.text && <p className="mb-2 whitespace-pre-wrap">{msg.text}</p>}
+              {msg.author && (
+                <p className="text-sm font-semibold text-gray-700 mb-1">{msg.author}</p>
+              )}
+              {msg.text && (
+                <p className="mb-2 whitespace-pre-wrap">{msg.text}</p>
+              )}
 
               {msg.mediaUrl && msg.mediaType === 'image' && (
                 <img
