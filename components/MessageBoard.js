@@ -157,7 +157,7 @@ export default function MessageBoard() {
                   <video
                     ref={el => (videoRefs.current[msg.id] = el)}
                     src={msg.mediaUrl}
-                    className="w-full aspect-video rounded overflow-hidden cursor-pointer"
+                    className="w-full max-h-[90vh] md:w-[700px] md:max-h-[500px] rounded cursor-pointer"
                     autoPlay
                     loop
                     muted
@@ -170,6 +170,7 @@ export default function MessageBoard() {
                       setMuteMap(prev => ({ ...prev, [msg.id]: vid.muted }));
                     }}
                   />
+
                   <div
                     className="absolute top-1 right-1 bg-black/60 text-white text-xs
                               px-1.5 py-0.5 rounded pointer-events-none select-none"
