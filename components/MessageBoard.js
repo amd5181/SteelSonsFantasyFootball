@@ -9,10 +9,7 @@ export default function MessageBoard() {
     const loadPosts = async () => {
       const db = getFirestore(app);
       const snap = await getDocs(collection(db, "posts"));
-      const data = snap.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+      const data = snap.docs.map(doc => doc.data());
       setPosts(data);
     };
 
@@ -20,28 +17,14 @@ export default function MessageBoard() {
   }, []);
 
   return (
-    <div className="p-4 max-w-3xl mx-auto">
-      <h2 className="text-xl font-bold mb-4 text-yellow-500">Message Board</h2>
-
+    <div className="space-y-4">
       {posts.length === 0 ? (
-        <p className="text-gray-400">No posts yet.</p>
+        <p className="text-gray-500 italic">No posts yet.</p>
       ) : (
-        posts.map((post) => (
-          <div
-            key={post.id}
-            className="bg-white rounded-xl shadow p-4 mb-4 border border-gray-200"
-          >
-            <div className="flex justify-between items-center mb-2">
-              <strong className="text-black">{post.Author || "Anonymous"}</strong>
-              <span className="text-xs text-gray-500">
-                {post.timestamp?.toDate
-                  ? post.timestamp.toDate().toLocaleString()
-                  : ""}
-              </span>
-            </div>
-            <div className="text-gray-800 whitespace-pre-line">{post.Content}</div>
-            {/* Media (image/video/audio) – coming soon */}
-            {/* Reactions – coming soon */}
+        posts.map((post, i) => (
+          <div key={i} className="bg-white shadow-md p-4 rounded-md">
+            <div className="font-bold text-lg">{post.Author}</div>
+            <p className="mt-2">{post.Content}</p>
           </div>
         ))
       )}
