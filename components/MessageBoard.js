@@ -17,7 +17,7 @@ import {
 } from 'firebase/storage';
 import { db, storage } from '../lib/firebase';
 
-const EMOJIS = ['👍', '😂', '🔥'];        // expand anytime
+const EMOJIS = ['❤️', '😂', '🔥', '👎'];
 
 export default function MessageBoard() {
   const [messages, setMessages] = useState([]);
@@ -157,7 +157,7 @@ export default function MessageBoard() {
                   <video
                     ref={el => (videoRefs.current[msg.id] = el)}
                     src={msg.mediaUrl}
-                    className="max-w-full rounded cursor-pointer"
+                    className="max-w-full max-h-[400px] md:max-h-[600px] rounded cursor-pointer"
                     autoPlay
                     loop
                     muted
@@ -172,12 +172,13 @@ export default function MessageBoard() {
                   />
                   <div
                     className="absolute top-1 right-1 bg-black/60 text-white text-xs
-                               px-1.5 py-0.5 rounded pointer-events-none select-none"
+                              px-1.5 py-0.5 rounded pointer-events-none select-none"
                   >
                     {muteMap[msg.id] ?? true ? '🔇' : '🔊'}
                   </div>
                 </div>
               )}
+
 
               {/* 😀 reactions */}
               <div className="flex space-x-3 mt-2">
