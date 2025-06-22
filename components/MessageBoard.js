@@ -1,11 +1,20 @@
 'use client';
-import React, { useState, useEffect, useRef, Fragment } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
-  collection, addDoc, query, orderBy, onSnapshot, serverTimestamp,
-  updateDoc, doc, increment,
+  collection,
+  addDoc,
+  query,
+  orderBy,
+  onSnapshot,
+  serverTimestamp,
+  updateDoc,
+  doc,
+  increment,
 } from 'firebase/firestore';
 import {
-  ref as storageRef, uploadBytes, getDownloadURL,
+  ref as storageRef,
+  uploadBytes,
+  getDownloadURL,
 } from 'firebase/storage';
 import { db, storage } from '../lib/firebase';
 
@@ -55,16 +64,24 @@ export default function MessageBoard() {
       if (!el) return;
       const shouldHaveAudio = audioOn && id === activeId;
       el.muted = !shouldHaveAudio;
-      if (shouldHaveAudio) el.play().catch(() => {});
+      if (id === activeId) el.play().catch(() => {});
+      else el.pause();
     });
   }, [audioOn, activeId]);
 
-  const post = async () => {
-    const text = newMsg.trim(), name = author.trim();
-    if (!text && mode === 'upload' && !file && mode === 'embed' && !embedURL.trim()) return;
-    if (!name) { setErr('Enter your name'); return; }
-    setUploading(true); setErr('');
+  useEffect(() => {
+    Object.values(videoRefs.current).forEach(el => {
+      if (el && el.paused) el.play().catch(() => {});
+    });
+  }, [messages]);
 
+  const post = async () => {
+    const text = newMsg.trim();
+    const name = author.trim();
+    if (!text && ((mode === 'upload' && !file) || (mode === 'embed' && !embedURL.trim()))) return;
+    if (!name) { setErr('Enter your name'); return; }
+
+    setUploading(true); setErr('');
     let mediaUrl = '', mediaType = '';
     try {
       if (mode === 'upload' && file) {
@@ -79,7 +96,6 @@ export default function MessageBoard() {
         const isYouTube = /youtube\.com|youtu\.be/.test(mediaUrl);
         const isVimeo = /vimeo\.com/.test(mediaUrl);
         const isImg = /\.(gif|jpe?g|png|webp)$/i.test(mediaUrl);
-
         if (isYouTube) {
           const id = mediaUrl.split(/v=|youtu\.be\//)[1]?.split(/[?&]/)[0];
           mediaUrl = `https://www.youtube.com/embed/${id}`;
@@ -107,56 +123,32 @@ export default function MessageBoard() {
     }
   };
 
-  const react = (id, emoji) =>
-    updateDoc(doc(db, 'posts', id), {
-      [`reactions.${emoji}`]: increment(1),
-    }).catch(console.error);
+  const react = (id, emoji) => updateDoc(doc(db, 'posts', id), {
+    [`reactions.${emoji}`]: increment(1),
+  }).catch(console.error);
 
   return (
     <div className="bg-white text-black p-6 rounded-lg shadow-md">
       <h2 className="text-2xl font-bold mb-4">Message Board</h2>
-
       <div className="space-y-2 mb-6">
         <input className="w-full border px-3 py-2 rounded-md focus:ring-2 ring-blue-500" placeholder="Your name" value={author} onChange={e => setAuthor(e.target.value)} />
-
         <div className="flex space-x-4 text-sm">
           {['upload', 'embed'].map(m => (
-            <button
-              key={m}
-              onClick={() => setMode(m)}
-              className={`px-3 py-1 rounded-full ${mode === m ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
-            >
-              {m === 'upload' ? 'Upload file' : 'Embed link'}
-            </button>
+            <button key={m} onClick={() => setMode(m)} className={`px-3 py-1 rounded-full ${mode === m ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}>{m === 'upload' ? 'Upload file' : 'Embed link'}</button>
           ))}
         </div>
-
-        {mode === 'upload' && (
-          <input type="file" accept="image/*,video/*" onChange={e => setFile(e.target.files?.[0] || null)} />
-        )}
-
-        {mode === 'embed' && (
-          <input className="w-full border px-3 py-2 rounded-md focus:ring-2 ring-blue-500" placeholder="Paste image / GIF / YouTube / Vimeo URL…" value={embedURL} onChange={e => setEmbedURL(e.target.value)} />
-        )}
-
+        {mode === 'upload' && <input type="file" accept="image/*,video/*" onChange={e => setFile(e.target.files?.[0] || null)} />}
+        {mode === 'embed' && <input className="w-full border px-3 py-2 rounded-md focus:ring-2 ring-blue-500" placeholder="Paste image / GIF / YouTube / Vimeo URL…" value={embedURL} onChange={e => setEmbedURL(e.target.value)} />}
         <input className="w-full border px-3 py-2 rounded-md focus:ring-2 ring-blue-500" placeholder="Type your message…" value={newMsg} onChange={e => setNewMsg(e.target.value)} onKeyDown={e => e.key === 'Enter' && post()} />
-
-        <button onClick={post} disabled={uploading} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50">
-          {uploading ? 'Posting…' : 'Post'}
-        </button>
+        <button onClick={post} disabled={uploading} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50">{uploading ? 'Posting…' : 'Post'}</button>
         {err && <p className="text-red-600">{err}</p>}
       </div>
-
       <div className="space-y-4">
         {messages.map(msg => (
           <div key={msg.id} className="bg-gray-100 p-4 rounded-md">
             {msg.author && <p className="text-sm font-semibold text-gray-700 mb-1">{msg.author}</p>}
             {msg.text && <p className="mb-2 whitespace-pre-wrap">{msg.text}</p>}
-
-            {msg.mediaUrl && msg.mediaType === 'image' && (
-              <img src={msg.mediaUrl} alt="" className="max-w-full rounded" />
-            )}
-
+            {msg.mediaUrl && msg.mediaType === 'image' && <img src={msg.mediaUrl} alt="" className="max-w-full rounded" />}
             {msg.mediaUrl && msg.mediaType === 'video' && (
               <div className="relative">
                 <video
@@ -175,11 +167,7 @@ export default function MessageBoard() {
                 </div>
               </div>
             )}
-
-            {msg.mediaUrl && msg.mediaType === 'embed-image' && (
-              <img src={msg.mediaUrl} alt="" className="max-w-full rounded" />
-            )}
-
+            {msg.mediaUrl && msg.mediaType === 'embed-image' && <img src={msg.mediaUrl} alt="" className="max-w-full rounded" />}
             {msg.mediaUrl && msg.mediaType === 'embed-video' && (
               <div className="relative pb-[56.25%]">
                 <iframe
@@ -191,7 +179,6 @@ export default function MessageBoard() {
                 />
               </div>
             )}
-
             <div className="flex space-x-3 mt-2">
               {EMOJIS.map(e => (
                 <button key={e} className="flex items-center space-x-1 text-lg" onClick={() => react(msg.id, e)}>
