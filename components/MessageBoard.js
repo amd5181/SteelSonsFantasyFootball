@@ -9,7 +9,10 @@ export default function MessageBoard() {
     const loadPosts = async () => {
       const db = getFirestore(app);
       const snap = await getDocs(collection(db, "posts"));
-      const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const data = snap.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
       setPosts(data);
     };
 
@@ -17,17 +20,28 @@ export default function MessageBoard() {
   }, []);
 
   return (
-    <div className="p-4 max-w-2xl mx-auto">
-      <h1 className="text-3xl font-bold text-yellow-500 mb-6 text-center">Message Board</h1>
+    <div className="p-4 max-w-3xl mx-auto">
+      <h2 className="text-xl font-bold mb-4 text-yellow-500">Message Board</h2>
 
       {posts.length === 0 ? (
-        <p className="text-center text-gray-400">No posts yet.</p>
+        <p className="text-gray-400">No posts yet.</p>
       ) : (
         posts.map((post) => (
-          <div key={post.id} className="bg-white border border-gray-300 rounded-xl shadow-md mb-6 p-4 space-y-2">
-            <div className="text-sm text-gray-500">{new Date(post.timestamp?.seconds * 1000).toLocaleString()}</div>
-            <div className="text-lg font-semibold text-black">{post.Author || "Unknown"}</div>
-            <div className="prose max-w-none text-gray-800 whitespace-pre-wrap">{post.Content}</div>
+          <div
+            key={post.id}
+            className="bg-white rounded-xl shadow p-4 mb-4 border border-gray-200"
+          >
+            <div className="flex justify-between items-center mb-2">
+              <strong className="text-black">{post.Author || "Anonymous"}</strong>
+              <span className="text-xs text-gray-500">
+                {post.timestamp?.toDate
+                  ? post.timestamp.toDate().toLocaleString()
+                  : ""}
+              </span>
+            </div>
+            <div className="text-gray-800 whitespace-pre-line">{post.Content}</div>
+            {/* Media (image/video/audio) – coming soon */}
+            {/* Reactions – coming soon */}
           </div>
         ))
       )}
