@@ -14,7 +14,7 @@ export default function Header() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="bg-gray-800 text-white shadow-md px-4 py-3 flex items-center justify-between">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-gray-800 text-white shadow-md px-4 py-3 flex items-center justify-between">
       <button onClick={() => setOpen(true)}>
         <Bars3Icon className="h-6 w-6 text-white" />
       </button>
