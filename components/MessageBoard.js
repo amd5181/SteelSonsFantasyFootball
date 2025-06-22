@@ -1,39 +1,47 @@
-import React, { useState, useEffect } from 'react';
-import { getFirestore, getDocs, collection } from "firebase/firestore";
-import { app } from "../firebase"; // or wherever you're initializing Firebase
+import React, { useState } from 'react';
 
 export default function MessageBoard() {
-  const [posts, setPosts] = useState([]);
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
 
-  useEffect(() => {
-    const loadPosts = async () => {
-      const db = getFirestore(app);
-      const snap = await getDocs(collection(db, "posts"));
-      const data = snap.docs.map(doc => doc.data());
-      setPosts(data);
-    };
-
-    loadPosts();
-  }, []);
+  const handlePost = () => {
+    if (newMessage.trim() === '') return;
+    setMessages([{ text: newMessage, timestamp: Date.now() }, ...messages]);
+    setNewMessage('');
+  };
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
-      <h2 className="text-2xl font-semibold mb-4 border-b pb-2">Message Board</h2>
-      {posts.length === 0 ? (
-        <p className="text-gray-500">No posts yet.</p>
-      ) : (
-        <div className="space-y-4">
-          {posts.map((post, i) => (
-            <div
-              key={i}
-              className="bg-white shadow-md rounded-md p-4 border border-gray-200"
-            >
-              <h3 className="text-lg font-bold">{post.Author}</h3>
-              <p className="mt-1 text-gray-700">{post.Content}</p>
+    <div className="bg-white text-black p-6 rounded-lg shadow-md">
+      <h2 className="text-2xl font-bold mb-4">Message Board</h2>
+      
+      <div className="flex gap-2 mb-4">
+        <input
+          type="text"
+          placeholder="Type your message..."
+          className="flex-1 border border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handlePost()}
+        />
+        <button
+          onClick={handlePost}
+          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+        >
+          Post
+        </button>
+      </div>
+
+      <div className="space-y-3">
+        {messages.length === 0 ? (
+          <p className="text-gray-500">No messages yet.</p>
+        ) : (
+          messages.map((msg, index) => (
+            <div key={index} className="bg-gray-100 p-3 rounded-md">
+              {msg.text}
             </div>
-          ))}
-        </div>
-      )}
+          ))
+        )}
+      </div>
     </div>
   );
 }
