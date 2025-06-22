@@ -114,7 +114,7 @@ export default function MessageBoard() {
           {['upload', 'embed'].map(m => (
             <button
               key={m}
-              onClick={() => setMode(m as any)}
+              onClick={() => setMode(m)}
               className={`px-3 py-1 rounded-full ${
                 mode === m ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'
               }`}
