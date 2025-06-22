@@ -1,31 +1,30 @@
-import { useState, useEffect } from 'react'
-import { db } from '../lib/firebase'
-import { collection, getDocs } from 'firebase/firestore'
+import { useEffect, useState } from "react";
+import { db } from "../firebase";          // path points to the file you created
+import { collection, getDocs } from "firebase/firestore";
 
 export default function MessageBoard() {
-  const [posts, setPosts] = useState([])
+  const [posts, setPosts] = useState([]);
 
   useEffect(() => {
-    const fetchPosts = async () => {
-      const querySnapshot = await getDocs(collection(db, 'posts'))
-      const results = []
-      querySnapshot.forEach(doc => {
-        results.push({ id: doc.id, ...doc.data() })
-      })
-      setPosts(results)
-    }
-    fetchPosts()
-  }, [])
+    const load = async () => {
+      const snap = await getDocs(collection(db, "posts"));
+      setPosts(snap.docs.map(d => d.data()));
+    };
+    load();
+  }, []);
 
   return (
     <div className="p-4 max-w-xl mx-auto">
       <h1 className="text-xl font-bold mb-4">Message Board</h1>
-      {posts.map(post => (
-        <div key={post.id} className="bg-white border p-4 mb-3 shadow rounded">
-          <div className="text-sm font-semibold">{post.author}</div>
-          <div>{post.content}</div>
+
+      {posts.length === 0 && <p>No posts yet.</p>}
+
+      {posts.map((p, i) => (
+        <div key={i} className="border p-3 mb-3 rounded">
+          <div className="font-semibold">{p.author}</div>
+          <div>{p.content}</div>
         </div>
       ))}
     </div>
-  )
+  );
 }
