@@ -1,3 +1,7 @@
+import React, { useState, useEffect } from 'react';
+import { getFirestore, getDocs, collection } from "firebase/firestore";
+import { app } from "../firebase"; // or wherever you're initializing Firebase
+
 export default function MessageBoard() {
   const [posts, setPosts] = useState([]);
 
