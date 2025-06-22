@@ -1,7 +1,3 @@
-import { useEffect, useState } from "react";
-import { getFirestore, collection, getDocs } from "firebase/firestore";
-import { app } from "../firebase";
-
 export default function MessageBoard() {
   const [posts, setPosts] = useState([]);
 
@@ -17,16 +13,22 @@ export default function MessageBoard() {
   }, []);
 
   return (
-    <div className="space-y-4">
+    <div className="p-6 max-w-3xl mx-auto">
+      <h2 className="text-2xl font-semibold mb-4 border-b pb-2">Message Board</h2>
       {posts.length === 0 ? (
-        <p className="text-gray-500 italic">No posts yet.</p>
+        <p className="text-gray-500">No posts yet.</p>
       ) : (
-        posts.map((post, i) => (
-          <div key={i} className="bg-white shadow-md p-4 rounded-md">
-            <div className="font-bold text-lg">{post.Author}</div>
-            <p className="mt-2">{post.Content}</p>
-          </div>
-        ))
+        <div className="space-y-4">
+          {posts.map((post, i) => (
+            <div
+              key={i}
+              className="bg-white shadow-md rounded-md p-4 border border-gray-200"
+            >
+              <h3 className="text-lg font-bold">{post.Author}</h3>
+              <p className="mt-1 text-gray-700">{post.Content}</p>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
