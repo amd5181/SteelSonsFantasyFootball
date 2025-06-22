@@ -1,30 +1,33 @@
-import { useEffect, useState } from "react";
-import { db } from "../firebase";          // path points to the file you created
+// MessageBoard.jsx
+import React, { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
+import { db } from "./firebase"; // Adjust path as needed
 
 export default function MessageBoard() {
   const [posts, setPosts] = useState([]);
 
   useEffect(() => {
-    const load = async () => {
-      const snap = await getDocs(collection(db, "posts"));
-      setPosts(snap.docs.map(d => d.data()));
+    const fetchPosts = async () => {
+      const snapshot = await getDocs(collection(db, "posts"));
+      const postsData = snapshot.docs.map(doc => doc.data());
+      setPosts(postsData);
     };
-    load();
+
+    fetchPosts();
   }, []);
 
   return (
-    <div className="p-4 max-w-xl mx-auto">
-      <h1 className="text-xl font-bold mb-4">Message Board</h1>
-
-      {posts.length === 0 && <p>No posts yet.</p>}
-
-      {posts.map((p, i) => (
-        <div key={i} className="border p-3 mb-3 rounded">
-          <div className="font-semibold">{p.author}</div>
-          <div>{p.content}</div>
-        </div>
-      ))}
+    <div>
+      {posts.length === 0 ? (
+        <p>No posts yet</p>
+      ) : (
+        posts.map((post, idx) => (
+          <div key={idx} className="mb-4 border p-4 rounded shadow">
+            <h3 className="font-bold">{post.Author}</h3>
+            <p>{post.Content}</p>
+          </div>
+        ))
+      )}
     </div>
   );
 }
