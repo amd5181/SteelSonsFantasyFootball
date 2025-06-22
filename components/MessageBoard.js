@@ -16,12 +16,11 @@ export default function MessageBoard() {
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
 
-  // 🔄 Stream posts in real-time with fallback sorting
+  /* 🔄 Live-sync posts (single orderBy so NO Firestore index needed) */
   useEffect(() => {
     const q = query(
       collection(db, 'posts'),
-      orderBy('createdAt', 'desc'),
-      orderBy('fallbackTime', 'desc')
+      orderBy('fallbackTime', 'desc')   // ← only this field, guaranteed to exist
     );
     const unsub = onSnapshot(q, (snap) => {
       setMessages(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
@@ -29,7 +28,7 @@ export default function MessageBoard() {
     return unsub;
   }, []);
 
-  // 📤 Upload media and write post
+  /* 📤 Upload media (if any) and write post */
   const handlePost = async () => {
     const text = newMessage.trim();
     if (!text && !file) return;
@@ -50,8 +49,8 @@ export default function MessageBoard() {
       text,
       mediaUrl,
       mediaType,
-      createdAt: serverTimestamp(),
-      fallbackTime: Date.now()
+      createdAt: serverTimestamp(),   // still stored for reference
+      fallbackTime: Date.now(),       // used for sorting
     });
 
     setNewMessage('');
@@ -63,6 +62,7 @@ export default function MessageBoard() {
     <div className="bg-white text-black p-6 rounded-lg shadow-md">
       <h2 className="text-2xl font-bold mb-4">Message Board</h2>
 
+      {/* ✏️ Compose */}
       <div className="space-y-2 mb-6">
         <input
           type="text"
@@ -89,6 +89,7 @@ export default function MessageBoard() {
         </button>
       </div>
 
+      {/* 📜 Posts */}
       <div className="space-y-4">
         {messages.length === 0 ? (
           <p className="text-gray-500">No messages yet.</p>
