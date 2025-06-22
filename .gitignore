@@ -137,3 +137,5 @@ dist
 
 google-cloud-sdk/
 google-cloud-sdk-*.tar.gz
+google-cloud-sdk/
+*.tar.gz
