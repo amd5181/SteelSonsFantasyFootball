@@ -21,9 +21,6 @@ export default function TradeBlock() {
     deadline: '',
   });
 
-  // ────────────────────────────────────────────────────────────────────────
-  // Fetch posts from Firestore and sort newest first
-  // ────────────────────────────────────────────────────────────────────────
   const fetchPosts = async () => {
     const snapshot = await getDocs(collection(db, 'tradeBlock'));
     const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
@@ -37,9 +34,6 @@ export default function TradeBlock() {
     fetchPosts();
   }, []);
 
-  // ────────────────────────────────────────────────────────────────────────
-  // Submit new post
-  // ────────────────────────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
     const post = {
@@ -59,9 +53,6 @@ export default function TradeBlock() {
     fetchPosts();
   };
 
-  // ────────────────────────────────────────────────────────────────────────
-  // Handle emoji reactions
-  // ────────────────────────────────────────────────────────────────────────
   const reactToPost = async (id, type) => {
     const ref = doc(db, 'tradeBlock', id);
     await updateDoc(ref, {
@@ -71,35 +62,33 @@ export default function TradeBlock() {
   };
 
   return (
-    <div
-      className="mt-24 p-4 max-w-3xl mx-auto space-y-8 overscroll-none bg-neutral-900 text-white min-h-screen"
-      style={{ overscrollBehavior: 'none' }}
-    >
-      {/* ─── Header ─────────────────────────────────────────────────────── */}
-      <h1 className="text-3xl font-bold text-center mb-6">Trade Block</h1>
+    <div className="mt-20 px-4 max-w-2xl mx-auto text-white min-h-screen bg-[#0d1117]">
+      <h1 className="text-2xl font-bold text-center mb-4 text-yellow-400">
+        Trade Block
+      </h1>
 
-      {/* ─── Post Form ──────────────────────────────────────────────────── */}
+      {/* ─── Post Form ───────────────────────────── */}
       <form
         onSubmit={handleSubmit}
-        className="space-y-4 border p-4 rounded-xl shadow bg-zinc-800"
+        className="space-y-3 bg-[#161b22] p-4 rounded-lg shadow"
       >
         <input
-          placeholder="Manager Name"
-          className="w-full p-2 border rounded bg-neutral-700"
+          placeholder="Your name"
+          className="w-full p-2 rounded bg-white text-black"
           value={form.managerName}
           onChange={(e) => setForm({ ...form, managerName: e.target.value })}
           required
         />
-        <input
+        <textarea
           placeholder="Want (positions or players)"
-          className="w-full p-2 border rounded bg-neutral-700"
+          className="w-full p-2 rounded bg-white text-black"
           value={form.want}
           onChange={(e) => setForm({ ...form, want: e.target.value })}
           required
         />
-        <input
+        <textarea
           placeholder="Willing to Trade (positions or players)"
-          className="w-full p-2 border rounded bg-neutral-700"
+          className="w-full p-2 rounded bg-white text-black"
           value={form.willingToTrade}
           onChange={(e) =>
             setForm({ ...form, willingToTrade: e.target.value })
@@ -108,80 +97,71 @@ export default function TradeBlock() {
         />
         <textarea
           placeholder="Comments (max 500 chars)"
-          className="w-full p-2 border rounded bg-neutral-700"
+          className="w-full p-2 rounded bg-white text-black"
           maxLength={500}
           value={form.comments}
           onChange={(e) => setForm({ ...form, comments: e.target.value })}
         />
         <input
           type="date"
-          className="w-full p-2 border rounded bg-neutral-700"
+          className="w-full p-2 rounded bg-white text-black"
           value={form.deadline}
           onChange={(e) => setForm({ ...form, deadline: e.target.value })}
         />
         <button
           type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          className="bg-yellow-400 text-black px-4 py-2 rounded hover:bg-yellow-500"
         >
-          Submit
+          Post
         </button>
       </form>
 
-      {/* ─── Post Cards ─────────────────────────────────────────────────── */}
-      {posts.map((post) => (
-        <div
-          key={post.id}
-          className="border p-4 rounded-xl shadow space-y-2 bg-zinc-800"
-        >
-          <div className="font-bold text-lg">{post.managerName}</div>
-          <div>
-            <strong>Want:</strong> {post.want}
-          </div>
-          <div>
-            <strong>Willing to Trade:</strong> {post.willingToTrade}
-          </div>
-          {post.comments && (
+      {/* ─── Posts ───────────────────────────── */}
+      <div className="mt-8 space-y-6">
+        {posts.map((post) => (
+          <div
+            key={post.id}
+            className="bg-white text-black rounded-lg p-4 shadow space-y-2"
+          >
+            <div className="font-semibold">{post.managerName}</div>
             <div>
-              <strong>Comments:</strong> {post.comments}
+              <strong>Want:</strong> {post.want}
             </div>
-          )}
-          {post.deadline && (
             <div>
-              <strong>Offer Deadline:</strong>{' '}
-              {post.deadline.seconds
-                ? new Date(post.deadline.seconds * 1000).toLocaleDateString()
-                : new Date(post.deadline).toLocaleDateString()}
+              <strong>Willing to Trade:</strong> {post.willingToTrade}
             </div>
-          )}
-          <div className="text-sm text-gray-400">
-            Posted:{' '}
-            {post.createdAt?.seconds
-              ? new Date(post.createdAt.seconds * 1000).toLocaleString()
-              : 'just now'}
+            {post.comments && (
+              <div>
+                <strong>Comments:</strong> {post.comments}
+              </div>
+            )}
+            {post.deadline && (
+              <div>
+                <strong>Offer Deadline:</strong>{' '}
+                {post.deadline.seconds
+                  ? new Date(post.deadline.seconds * 1000).toLocaleDateString()
+                  : new Date(post.deadline).toLocaleDateString()}
+              </div>
+            )}
+            <div className="text-sm text-right text-gray-600">
+              {post.createdAt?.seconds
+                ? new Date(post.createdAt.seconds * 1000).toLocaleString('en-US', {
+                    month: 'numeric',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true,
+                  })
+                : 'Just now'}
+            </div>
+            <div className="flex gap-4 text-xl pt-1">
+              <button onClick={() => reactToPost(post.id, 'like')}>❤️ {post.reactions?.like || 0}</button>
+              <button onClick={() => reactToPost(post.id, 'laugh')}>😂 {post.reactions?.laugh || 0}</button>
+              <button onClick={() => reactToPost(post.id, 'dislike')}>👎 {post.reactions?.dislike || 0}</button>
+            </div>
           </div>
-
-          <div className="flex space-x-4 pt-2">
-            <button
-              onClick={() => reactToPost(post.id, 'like')}
-              className="hover:scale-110"
-            >
-              ❤️ {post.reactions?.like || 0}
-            </button>
-            <button
-              onClick={() => reactToPost(post.id, 'laugh')}
-              className="hover:scale-110"
-            >
-              😂 {post.reactions?.laugh || 0}
-            </button>
-            <button
-              onClick={() => reactToPost(post.id, 'dislike')}
-              className="hover:scale-110"
-            >
-              👎 {post.reactions?.dislike || 0}
-            </button>
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
