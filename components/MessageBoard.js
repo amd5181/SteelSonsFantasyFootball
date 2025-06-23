@@ -29,6 +29,7 @@ export default function MessageBoard() {
   const [embedURL, setEmbedURL] = useState('');
   const [err, setErr] = useState('');
   const [uploading, setUploading] = useState(false);
+
   const videoRefs = useRef({});
   const visibleRatiosRef = useRef({});
   const [audioOn, setAudioOn] = useState(false);
@@ -50,8 +51,9 @@ export default function MessageBoard() {
           if (e.intersectionRatio >= 0.25) vis[id] = e.intersectionRatio;
           else delete vis[id];
         });
-        const best = Object.entries(vis).sort((a, b) => b[1] - a[1])[0]?.[0];
-        if (best && best !== activeId) setActiveId(best);
+        const entriesSorted = Object.entries(vis).sort((a, b) => b[1] - a[1]);
+        const best = entriesSorted[0]?.[0] || null;
+        if (best !== activeId) setActiveId(best);
       },
       { threshold: [0, 0.25, 0.5, 0.75, 1] }
     );
@@ -64,9 +66,15 @@ export default function MessageBoard() {
       if (!el) return;
       const shouldHaveAudio = audioOn && id === activeId;
       el.muted = !shouldHaveAudio;
-      if (shouldHaveAudio) el.play().catch(() => {});
+      el.play().catch(() => {});
     });
   }, [audioOn, activeId]);
+
+  useEffect(() => {
+    Object.values(videoRefs.current).forEach(el => {
+      if (el && el.paused) el.play().catch(() => {});
+    });
+  }, [messages]);
 
   const post = async () => {
     const text = newMsg.trim();
@@ -121,7 +129,7 @@ export default function MessageBoard() {
   }).catch(console.error);
 
   return (
-    <div className="bg-white text-black p-6 rounded-lg shadow-md">
+    <div className="bg-white text-black px-2 sm:px-4 md:px-6 py-6 sm:rounded-lg shadow-md max-w-full sm:max-w-2xl md:max-w-3xl lg:max-w-4xl mx-auto">
       <h2 className="text-2xl font-bold mb-4">Message Board</h2>
       <div className="space-y-2 mb-6">
         <input className="w-full border px-3 py-2 rounded-md focus:ring-2 ring-blue-500" placeholder="Your name" value={author} onChange={e => setAuthor(e.target.value)} />
@@ -141,14 +149,14 @@ export default function MessageBoard() {
           <div key={msg.id} className="bg-gray-100 p-4 rounded-md">
             {msg.author && <p className="text-sm font-semibold text-gray-700 mb-1">{msg.author}</p>}
             {msg.text && <p className="mb-2 whitespace-pre-wrap">{msg.text}</p>}
-            {msg.mediaUrl && msg.mediaType === 'image' && <img src={msg.mediaUrl} alt="" className="max-w-full rounded" />}
+            {msg.mediaUrl && msg.mediaType === 'image' && <img src={msg.mediaUrl} alt="" className="w-full rounded" />}
             {msg.mediaUrl && msg.mediaType === 'video' && (
               <div className="relative">
                 <video
                   data-msgid={msg.id}
                   ref={el => (videoRefs.current[msg.id] = el)}
                   src={msg.mediaUrl}
-                  className="w-full max-h-[95vh] md:w-[900px] md:max-h-[650px] rounded cursor-pointer"
+                  className="w-full max-h-[95vh] md:max-h-[650px] rounded cursor-pointer"
                   autoPlay loop muted playsInline controls={false}
                   onClick={() => {
                     if (!audioOn) setAudioOn(true);
@@ -160,7 +168,7 @@ export default function MessageBoard() {
                 </div>
               </div>
             )}
-            {msg.mediaUrl && msg.mediaType === 'embed-image' && <img src={msg.mediaUrl} alt="" className="max-w-full rounded" />}
+            {msg.mediaUrl && msg.mediaType === 'embed-image' && <img src={msg.mediaUrl} alt="" className="w-full rounded" />}
             {msg.mediaUrl && msg.mediaType === 'embed-video' && (
               <div className="relative pb-[56.25%]">
                 <iframe
