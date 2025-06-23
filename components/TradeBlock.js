@@ -58,6 +58,10 @@ export default function TradeBlock() {
       className="mt-24 p-4 max-w-3xl mx-auto space-y-8 overscroll-none bg-gray-100 dark:bg-neutral-900 min-h-screen"
       style={{ overscrollBehavior: 'none' }}
     >
+      <h1 className="text-3xl font-bold text-center text-gray-800 dark:text-gray-100 mb-6">Trade Block</h1>
+      className="mt-24 p-4 max-w-3xl mx-auto space-y-8 overscroll-none bg-gray-100 dark:bg-neutral-900 min-h-screen"
+      style={{ overscrollBehavior: 'none' }}
+    >
       {/* ─── Trade Post Form ──────────────────────────────────────────────── */}
       <form
         onSubmit={handleSubmit}
