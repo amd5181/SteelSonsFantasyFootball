@@ -22,12 +22,7 @@ const EMOJIS = ['❤️', '😂', '🔥', '👎'];
 
 function formatTime(timestamp) {
   const date = new Date(timestamp);
-  return date.toLocaleString(undefined, {
-    hour: '2-digit',
-    minute: '2-digit',
-    month: 'short',
-    day: 'numeric',
-  });
+  return `${date.getMonth() + 1}/${date.getDate()}/${String(date.getFullYear()).slice(-2)} - ${date.getHours() % 12 || 12}:${date.getMinutes().toString().padStart(2, '0')}${date.getHours() >= 12 ? 'p' : 'a'}`;
 }
 
 export default function MessageBoard() {
@@ -149,7 +144,7 @@ export default function MessageBoard() {
             <button key={m} onClick={() => setMode(m)} className={`px-3 py-1 rounded-full ${mode === m ? 'bg-yellow-500 text-black' : 'bg-white text-black border border-gray-300'}`}>{m === 'upload' ? 'Upload file' : 'Embed link'}</button>
           ))}
         </div>
-        {mode === 'upload' && <input type="file" accept="image/*,video/*" className="text-black text-base" onChange={e => setFile(e.target.files?.[0] || null)} />}
+        {mode === 'upload' && <input type="file" accept="image/*,video/*" className="text-yellow-700 text-base" onChange={e => setFile(e.target.files?.[0] || null)} />}
         {mode === 'embed' && <input className="w-full bg-white text-black border px-3 py-2 rounded-md focus:ring-2 ring-yellow-500" placeholder="Paste image / GIF / YouTube / Vimeo URL…" value={embedURL} onChange={e => setEmbedURL(e.target.value)} />}
         <div className="pt-2 text-white">—</div>
         <div className="pt-1">
