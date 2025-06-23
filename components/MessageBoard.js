@@ -37,7 +37,7 @@ export default function MessageBoard() {
 
   const videoRefs = useRef({});
   const visibleRatiosRef = useRef({});
-  const [audioOnId, setAudioOnId] = useState(null);
+  const [audioOn, setAudioOn] = useState(true);
   const [activeId, setActiveId] = useState(null);
 
   useEffect(() => {
@@ -69,11 +69,11 @@ export default function MessageBoard() {
   useEffect(() => {
     Object.entries(videoRefs.current).forEach(([id, el]) => {
       if (!el) return;
-      const shouldHaveAudio = id === audioOnId && id === activeId;
+      const shouldHaveAudio = audioOn && id === activeId;
       el.muted = !shouldHaveAudio;
       el.play().catch(() => {});
     });
-  }, [audioOnId, activeId]);
+  }, [audioOn, activeId]);
 
   useEffect(() => {
     Object.values(videoRefs.current).forEach(el => {
@@ -134,8 +134,10 @@ export default function MessageBoard() {
   }).catch(console.error);
 
   return (
-    <div className="text-black w-full max-w-none px-0 sm:px-0">
-      <h2 className="text-2xl font-bold mb-4 px-4 pt-6 text-center text-yellow-500">Message Board</h2>
+    <div className="text-black w-full max-w-none px-0 sm:px-0 overflow-x-hidden">
+      <h2 className="text-2xl font-bold mb-4 px-4 pt-6 text-center text-yellow-500 cursor-pointer" onClick={() => setAudioOn(!audioOn)}>
+        Message Board
+      </h2>
       <div className="space-y-2 mb-6 px-4">
         <input className="w-full bg-white text-black border px-3 py-2 rounded-md focus:ring-2 ring-yellow-500" placeholder="Your name" value={author} onChange={e => setAuthor(e.target.value)} />
         <textarea rows={3} className="w-full bg-white text-black border px-3 py-2 rounded-md focus:ring-2 ring-yellow-500" placeholder="Type your message…" value={newMsg} onChange={e => setNewMsg(e.target.value)} onKeyDown={e => e.key === 'Enter' && !e.shiftKey && post()} />
@@ -144,7 +146,7 @@ export default function MessageBoard() {
             <button key={m} onClick={() => setMode(m)} className={`px-3 py-1 rounded-full ${mode === m ? 'bg-yellow-500 text-black' : 'bg-white text-black border border-gray-300'}`}>{m === 'upload' ? 'Upload file' : 'Embed link'}</button>
           ))}
         </div>
-        {mode === 'upload' && <input type="file" accept="image/*,video/*" className="text-yellow-700 text-base" onChange={e => setFile(e.target.files?.[0] || null)} />}
+        {mode === 'upload' && <input type="file" accept="image/*,video/*" className="text-yellow-700 text-lg" onChange={e => setFile(e.target.files?.[0] || null)} />}
         {mode === 'embed' && <input className="w-full bg-white text-black border px-3 py-2 rounded-md focus:ring-2 ring-yellow-500" placeholder="Paste image / GIF / YouTube / Vimeo URL…" value={embedURL} onChange={e => setEmbedURL(e.target.value)} />}
         <div className="pt-2 text-white">—</div>
         <div className="pt-1">
@@ -169,17 +171,10 @@ export default function MessageBoard() {
                   src={msg.mediaUrl}
                   className="w-full max-h-[95vh] md:max-h-[650px] rounded cursor-pointer"
                   autoPlay loop muted playsInline controls={false}
-                  onClick={() => {
-                    if (audioOnId === msg.id) {
-                      setAudioOnId(null);
-                    } else {
-                      setAudioOnId(msg.id);
-                    }
-                    setActiveId(msg.id);
-                  }}
+                  onClick={() => setAudioOn(!audioOn)}
                 />
                 <div className="absolute top-1 right-1 bg-black/60 text-white text-xs px-1.5 py-0.5 rounded select-none pointer-events-none">
-                  {audioOnId === msg.id ? '🔊' : '🔇'}
+                  {audioOn ? '🔊' : '🔇'}
                 </div>
               </div>
             )}
