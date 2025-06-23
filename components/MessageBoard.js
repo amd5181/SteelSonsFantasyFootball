@@ -35,21 +35,38 @@ export default function MessageBoard() {
   const [activeId, setActiveId] = useState(null);
 
   useEffect(() => {
-    // Ensure every video keeps playing; only active one gets audio
+    const q = query(collection(db, 'posts'), orderBy('createdAtLocal', 'desc'));
+    return onSnapshot(q, snap =>
+      setMessages(snap.docs.map(d => ({ id: d.id, ...d.data() })))
+    );
+  }, []);
+
+  useEffect(() => {
+    const vis = visibleRatiosRef.current;
+    const observer = new IntersectionObserver(
+      entries => {
+        entries.forEach(e => {
+          const id = e.target.dataset.msgid;
+          if (e.intersectionRatio >= 0.25) vis[id] = e.intersectionRatio;
+          else delete vis[id];
+        });
+        const best = Object.entries(vis).sort((a, b) => b[1] - a[1])[0]?.[0];
+        if (best && best !== activeId) setActiveId(best);
+      },
+      { threshold: [0, 0.25, 0.5, 0.75, 1] }
+    );
+    Object.values(videoRefs.current).forEach(el => el && observer.observe(el));
+    return () => observer.disconnect();
+  }, [messages, activeId]);
+
+  useEffect(() => {
     Object.entries(videoRefs.current).forEach(([id, el]) => {
       if (!el) return;
       const shouldHaveAudio = audioOn && id === activeId;
       el.muted = !shouldHaveAudio;
-      // Always keep it playing so it can gain audio later without freezing
-      el.play().catch(() => {});
+      if (shouldHaveAudio) el.play().catch(() => {});
     });
   }, [audioOn, activeId]);
-
-  useEffect(() => {
-    Object.values(videoRefs.current).forEach(el => {
-      if (el && el.paused) el.play().catch(() => {});
-    });
-  }, [messages]);
 
   const post = async () => {
     const text = newMsg.trim();
