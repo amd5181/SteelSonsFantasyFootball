@@ -129,8 +129,8 @@ export default function MessageBoard() {
   }).catch(console.error);
 
   return (
-    <div className="bg-white text-black p-0 w-full">
-      <h2 className="text-2xl font-bold mb-4 px-4 pt-6">Message Board</h2>
+    <div className="text-black w-full">
+      <h2 className="text-2xl font-bold mb-4 px-4 pt-6 text-center">Message Board</h2>
       <div className="space-y-2 mb-6 px-4">
         <input className="w-full border px-3 py-2 rounded-md focus:ring-2 ring-blue-500" placeholder="Your name" value={author} onChange={e => setAuthor(e.target.value)} />
         <textarea rows={3} className="w-full border px-3 py-2 rounded-md focus:ring-2 ring-blue-500" placeholder="Type your message…" value={newMsg} onChange={e => setNewMsg(e.target.value)} onKeyDown={e => e.key === 'Enter' && !e.shiftKey && post()} />
@@ -144,9 +144,9 @@ export default function MessageBoard() {
         <button onClick={post} disabled={uploading} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50">{uploading ? 'Posting…' : 'Post'}</button>
         {err && <p className="text-red-600">{err}</p>}
       </div>
-      <div className="space-y-4">
+      <div className="space-y-0">
         {messages.map(msg => (
-          <div key={msg.id} className="bg-gray-100">
+          <div key={msg.id} className="">
             {msg.author && <p className="text-sm font-semibold text-gray-700 mb-1 px-4 pt-4">{msg.author}</p>}
             {msg.text && <p className="mb-2 px-4 whitespace-pre-wrap">{msg.text}</p>}
             {msg.mediaUrl && msg.mediaType === 'image' && <img src={msg.mediaUrl} alt="" className="w-full" />}
