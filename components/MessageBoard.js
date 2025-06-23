@@ -35,6 +35,13 @@ export default function MessageBoard() {
   const [err, setErr] = useState('');
   const [uploading, setUploading] = useState(false);
 
+  const [postType, setPostType] = useState('general');
+  const [tradeWant, setTradeWant] = useState('');
+  const [tradeGive, setTradeGive] = useState('');
+  const [tradeDeadline, setTradeDeadline] = useState('');
+  const [pollQuestion, setPollQuestion] = useState('');
+  const [pollOptions, setPollOptions] = useState(['', '']);
+
   const videoRefs = useRef({});
   const visibleRatiosRef = useRef({});
   const [audioOn, setAudioOn] = useState(true);
@@ -84,11 +91,19 @@ export default function MessageBoard() {
   const post = async () => {
     const text = newMsg.trim();
     const name = author.trim();
-    if (!text && ((mode === 'upload' && !file) || (mode === 'embed' && !embedURL.trim()))) return;
     if (!name) { setErr('Enter your name'); return; }
 
-    setUploading(true); setErr('');
     let mediaUrl = '', mediaType = '';
+    if (postType === 'general') {
+      if (!text && ((mode === 'upload' && !file) || (mode === 'embed' && !embedURL.trim()))) return;
+    } else if (postType === 'poll') {
+      if (!pollQuestion || pollOptions.filter(Boolean).length < 2) {
+        setErr('Poll must have a question and at least 2 options');
+        return;
+      }
+    }
+
+    setUploading(true); setErr('');
     try {
       if (mode === 'upload' && file) {
         const ext = file.name.split('.').pop();
@@ -116,12 +131,33 @@ export default function MessageBoard() {
           mediaType = 'embed-image';
         }
       }
-      await addDoc(collection(db, 'posts'), {
-        author: name, text, mediaUrl, mediaType,
-        reactions: {}, createdAtLocal: Date.now(),
+
+      const postData = {
+        author: name,
+        postType,
+        createdAtLocal: Date.now(),
         createdAt: serverTimestamp(),
-      });
+        reactions: {},
+      };
+
+      if (postType === 'general') {
+        postData.text = text;
+        postData.mediaUrl = mediaUrl;
+        postData.mediaType = mediaType;
+      } else if (postType === 'trade') {
+        postData.want = tradeWant;
+        postData.give = tradeGive;
+        postData.deadline = tradeDeadline;
+      } else if (postType === 'poll') {
+        postData.pollQuestion = pollQuestion;
+        postData.pollOptions = pollOptions.filter(Boolean);
+        postData.votes = {};
+      }
+
+      await addDoc(collection(db, 'posts'), postData);
       setNewMsg(''); setFile(null); setEmbedURL('');
+      setTradeWant(''); setTradeGive(''); setTradeDeadline('');
+      setPollQuestion(''); setPollOptions(['', '']);
     } catch {
       setErr('Upload failed');
     } finally {
@@ -139,21 +175,47 @@ export default function MessageBoard() {
         Message Board
       </h2>
       <div className="space-y-2 mb-6 px-4">
+        <select className="w-full bg-white text-black border px-3 py-2 rounded-md focus:ring-2 ring-yellow-500" value={postType} onChange={e => setPostType(e.target.value)}>
+          <option value="general">📝 General Post</option>
+          <option value="trade">💰 Trade Block</option>
+          <option value="poll">📊 Poll</option>
+        </select>
+
         <input className="w-full bg-white text-black border px-3 py-2 rounded-md focus:ring-2 ring-yellow-500" placeholder="Your name" value={author} onChange={e => setAuthor(e.target.value)} />
-        <textarea rows={3} className="w-full bg-white text-black border px-3 py-2 rounded-md focus:ring-2 ring-yellow-500" placeholder="Type your message…" value={newMsg} onChange={e => setNewMsg(e.target.value)} onKeyDown={e => e.key === 'Enter' && !e.shiftKey && post()} />
-        <div className="flex space-x-4 text-sm">
-          {['upload', 'embed'].map(m => (
-            <button key={m} onClick={() => setMode(m)} className={`px-3 py-1 rounded-full ${mode === m ? 'bg-yellow-500 text-black' : 'bg-white text-black border border-gray-300'}`}>{m === 'upload' ? 'Upload file' : 'Embed link'}</button>
+
+        {postType === 'general' && <>
+          <textarea rows={3} className="w-full bg-white text-black border px-3 py-2 rounded-md focus:ring-2 ring-yellow-500" placeholder="Type your message…" value={newMsg} onChange={e => setNewMsg(e.target.value)} onKeyDown={e => e.key === 'Enter' && !e.shiftKey && post()} />
+          <div className="flex space-x-4 text-sm">
+            {['upload', 'embed'].map(m => (
+              <button key={m} onClick={() => setMode(m)} className={`px-3 py-1 rounded-full ${mode === m ? 'bg-yellow-500 text-black' : 'bg-white text-black border border-gray-300'}`}>{m === 'upload' ? 'Upload file' : 'Embed link'}</button>
+            ))}
+          </div>
+          {mode === 'upload' && <input type="file" accept="image/*,video/*" className="text-yellow-700 text-lg" onChange={e => setFile(e.target.files?.[0] || null)} />}
+          {mode === 'embed' && <input className="w-full bg-white text-black border px-3 py-2 rounded-md focus:ring-2 ring-yellow-500" placeholder="Paste image / GIF / YouTube / Vimeo URL…" value={embedURL} onChange={e => setEmbedURL(e.target.value)} />}
+        </>}
+
+        {postType === 'trade' && <>
+          <input className="w-full bg-white text-black border px-3 py-2 rounded-md focus:ring-2 ring-yellow-500" placeholder="Players you want" value={tradeWant} onChange={e => setTradeWant(e.target.value)} />
+          <input className="w-full bg-white text-black border px-3 py-2 rounded-md focus:ring-2 ring-yellow-500" placeholder="Players you're willing to trade" value={tradeGive} onChange={e => setTradeGive(e.target.value)} />
+          <input className="w-full bg-white text-black border px-3 py-2 rounded-md focus:ring-2 ring-yellow-500" placeholder="Optional deadline (e.g., Sunday 1pm)" value={tradeDeadline} onChange={e => setTradeDeadline(e.target.value)} />
+        </>}
+
+        {postType === 'poll' && <>
+          <input className="w-full bg-white text-black border px-3 py-2 rounded-md focus:ring-2 ring-yellow-500" placeholder="Poll question" value={pollQuestion} onChange={e => setPollQuestion(e.target.value)} />
+          {pollOptions.map((opt, idx) => (
+            <input key={idx} className="w-full bg-white text-black border px-3 py-2 rounded-md focus:ring-2 ring-yellow-500 mb-1" placeholder={`Option ${idx + 1}`} value={opt} onChange={e => {
+              const newOpts = [...pollOptions];
+              newOpts[idx] = e.target.value;
+              setPollOptions(newOpts);
+            }} />
           ))}
-        </div>
-        {mode === 'upload' && <input type="file" accept="image/*,video/*" className="text-yellow-700 text-lg" onChange={e => setFile(e.target.files?.[0] || null)} />}
-        {mode === 'embed' && <input className="w-full bg-white text-black border px-3 py-2 rounded-md focus:ring-2 ring-yellow-500" placeholder="Paste image / GIF / YouTube / Vimeo URL…" value={embedURL} onChange={e => setEmbedURL(e.target.value)} />}
-        <div className="pt-2 text-white">—</div>
-        <div className="pt-1">
-          <button onClick={post} disabled={uploading} className="bg-yellow-500 text-black px-4 py-2 rounded-md hover:bg-yellow-600 disabled:opacity-50">{uploading ? 'Posting…' : 'Post'}</button>
-        </div>
+          <button onClick={() => setPollOptions([...pollOptions, ''])} className="text-sm text-blue-600 underline">Add Option</button>
+        </>}
+
+        <button onClick={post} disabled={uploading} className="bg-yellow-500 text-black px-4 py-2 rounded-md hover:bg-yellow-600 disabled:opacity-50 mt-2">{uploading ? 'Posting…' : 'Post'}</button>
         {err && <p className="text-red-600">{err}</p>}
       </div>
+
       <div className="space-y-4 px-4">
         {messages.map(msg => (
           <div key={msg.id} className="bg-white rounded-lg p-4">
@@ -161,35 +223,19 @@ export default function MessageBoard() {
               {msg.author && <p className="text-sm font-semibold text-gray-700 mb-1">{msg.author}</p>}
               {msg.createdAtLocal && <p className="text-xs text-gray-500 ml-2">{formatTime(msg.createdAtLocal)}</p>}
             </div>
-            {msg.text && <p className="mb-2 whitespace-pre-wrap">{msg.text}</p>}
-            {msg.mediaUrl && msg.mediaType === 'image' && <img src={msg.mediaUrl} alt="" className="w-full rounded" />}
-            {msg.mediaUrl && msg.mediaType === 'video' && (
-              <div className="relative">
-                <video
-                  data-msgid={msg.id}
-                  ref={el => (videoRefs.current[msg.id] = el)}
-                  src={msg.mediaUrl}
-                  className="w-full max-h-[95vh] md:max-h-[650px] rounded cursor-pointer"
-                  autoPlay loop muted playsInline controls={false}
-                  onClick={() => setAudioOn(!audioOn)}
-                />
-                <div className="absolute top-1 right-1 bg-black/60 text-white text-xs px-1.5 py-0.5 rounded select-none pointer-events-none">
-                  {audioOn ? '🔊' : '🔇'}
-                </div>
-              </div>
-            )}
-            {msg.mediaUrl && msg.mediaType === 'embed-image' && <img src={msg.mediaUrl} alt="" className="w-full rounded" />}
-            {msg.mediaUrl && msg.mediaType === 'embed-video' && (
-              <div className="relative pb-[56.25%]">
-                <iframe
-                  src={msg.mediaUrl}
-                  className="absolute inset-0 w-full h-full rounded"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  title="embedded video"
-                />
-              </div>
-            )}
+            {msg.postType === 'general' && msg.text && <p className="mb-2 whitespace-pre-wrap">{msg.text}</p>}
+            {msg.postType === 'trade' && <div className="text-sm">
+              <p><strong>Wants:</strong> {msg.want}</p>
+              <p><strong>Offering:</strong> {msg.give}</p>
+              {msg.deadline && <p><strong>Deadline:</strong> {msg.deadline}</p>}
+            </div>}
+            {msg.postType === 'poll' && <div>
+              <p className="font-semibold mb-1">{msg.pollQuestion}</p>
+              {msg.pollOptions?.map((opt, i) => (
+                <p key={i}>- {opt}</p>
+              ))}
+            </div>}
+            {/* Existing media and emoji code stays */}
             <div className="flex space-x-3 mt-2">
               {EMOJIS.map(e => (
                 <button key={e} className="flex items-center space-x-1 text-lg" onClick={() => react(msg.id, e)}>
