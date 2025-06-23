@@ -72,16 +72,16 @@ export default function TradeBlock() {
 
   return (
     <div
-      className=\"mt-24 px-4 pb-10 max-w-3xl mx-auto space-y-4 overscroll-none bg-[#0d1117] text-white min-h-screen\"
+      className="mt-24 px-4 pb-10 max-w-3xl mx-auto space-y-4 overscroll-none bg-[#0d1117] text-white min-h-screen"
       style={{ overscrollBehavior: 'none' }}
     >
       {/* ─── Header ─────────────────────────────────────────────────────── */}
-      <h1 className=\"text-2xl font-bold text-center text-amber-500 mb-4\">Trade Block</h1>
+      <h1 className="text-2xl font-bold text-center text-amber-500 mb-4">Trade Block</h1>
 
       {/* ─── Post Form ──────────────────────────────────────────────────── */}
       <form
         onSubmit={handleSubmit}
-        className=\"space-y-3 bg-transparent\"
+        className="space-y-3 bg-transparent"
       >
         <input
           placeholder="Manager Name"
@@ -92,7 +92,7 @@ export default function TradeBlock() {
         />
         <input
           placeholder="Want (positions or players)"
-          className=\"w-full p-2 rounded bg-[#0d1117] border border-gray-700 text-white\"
+          className="w-full p-2 rounded bg-[#0d1117] border border-gray-700 text-white"
           value={form.want}
           onChange={(e) => setForm({ ...form, want: e.target.value })}
           required
@@ -113,9 +113,9 @@ export default function TradeBlock() {
           value={form.comments}
           onChange={(e) => setForm({ ...form, comments: e.target.value })}
         />
-        <label className=\"block text-sm text-gray-400\">Deadline for Offers</label>
+        <label className="block text-sm text-gray-400">Deadline for Offers</label>
         <input
-          type=\"date\"
+          type="date"
           className="w-full p-2 border rounded bg-neutral-700"
           value={form.deadline}
           onChange={(e) => setForm({ ...form, deadline: e.target.value })}
@@ -132,7 +132,7 @@ export default function TradeBlock() {
       {posts.map((post) => (
         <div
           key={post.id}
-          className=\"border border-gray-700 rounded-xl bg-[#161b22] p-3 space-y-2\"
+          className="border border-gray-700 rounded-xl bg-[#161b22] p-3 space-y-2"
         >
           <div className="font-bold text-lg">{post.managerName}</div>
           <div>
