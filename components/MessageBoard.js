@@ -175,12 +175,13 @@ export default function MessageBoard() {
         Message Board
       </h2>
       <div className="space-y-2 mb-6 px-4">
-        <select className="w-full bg-white text-black border px-3 py-2 rounded-md focus:ring-2 ring-yellow-500" value={postType} onChange={e => setPostType(e.target.value)}>
-          <option value="general">📝 General Post</option>
-          <option value="trade">💰 Trade Block</option>
-          <option value="poll">📊 Poll</option>
-        </select>
-
+        <div className="flex justify-start">
+          <select className="text-sm bg-white border rounded px-2 py-1 text-black" value={postType} onChange={e => setPostType(e.target.value)}>
+            <option value="general">📝</option>
+            <option value="trade">💰</option>
+            <option value="poll">📊</option>
+          </select>
+        </div>
         <input className="w-full bg-white text-black border px-3 py-2 rounded-md focus:ring-2 ring-yellow-500" placeholder="Your name" value={author} onChange={e => setAuthor(e.target.value)} />
 
         {postType === 'general' && <>
@@ -224,18 +225,21 @@ export default function MessageBoard() {
               {msg.createdAtLocal && <p className="text-xs text-gray-500 ml-2">{formatTime(msg.createdAtLocal)}</p>}
             </div>
             {msg.postType === 'general' && msg.text && <p className="mb-2 whitespace-pre-wrap">{msg.text}</p>}
-            {msg.postType === 'trade' && <div className="text-sm">
-              <p><strong>Wants:</strong> {msg.want}</p>
-              <p><strong>Offering:</strong> {msg.give}</p>
-              {msg.deadline && <p><strong>Deadline:</strong> {msg.deadline}</p>}
-            </div>}
-            {msg.postType === 'poll' && <div>
-              <p className="font-semibold mb-1">{msg.pollQuestion}</p>
-              {msg.pollOptions?.map((opt, i) => (
-                <p key={i}>- {opt}</p>
-              ))}
-            </div>}
-            {/* Existing media and emoji code stays */}
+            {msg.postType === 'trade' && (
+              <div className="text-sm">
+                {msg.want && <p><strong>Wants:</strong> {msg.want}</p>}
+                {msg.give && <p><strong>Offering:</strong> {msg.give}</p>}
+                {msg.deadline && <p><strong>Deadline:</strong> {msg.deadline}</p>}
+              </div>
+            )}
+            {msg.postType === 'poll' && (
+              <div>
+                {msg.pollQuestion && <p className="font-semibold mb-1">{msg.pollQuestion}</p>}
+                {msg.pollOptions?.map((opt, i) => (
+                  <p key={i}>- {opt}</p>
+                ))}
+              </div>
+            )}
             <div className="flex space-x-3 mt-2">
               {EMOJIS.map(e => (
                 <button key={e} className="flex items-center space-x-1 text-lg" onClick={() => react(msg.id, e)}>
