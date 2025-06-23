@@ -170,18 +170,17 @@ export default function MessageBoard() {
   }).catch(console.error);
 
   return (
-    <div className="text-black w-full max-w-none px-0 sm:px-0 overflow-x-hidden">
+    <div className="text-black bg-white w-full max-w-none px-0 sm:px-0 overflow-x-hidden">
       <h2 className="text-2xl font-bold mb-4 px-4 pt-6 text-center text-yellow-500 cursor-pointer" onClick={() => setAudioOn(!audioOn)}>
         Message Board
       </h2>
       <div className="space-y-2 mb-6 px-4">
-        <div className="flex justify-start">
-          <select className="text-sm bg-white border rounded px-2 py-1 text-black" value={postType} onChange={e => setPostType(e.target.value)}>
-            <option value="general">📝</option>
-            <option value="trade">💰</option>
-            <option value="poll">📊</option>
-          </select>
-        </div>
+        <select className="w-full bg-white text-black border px-3 py-2 rounded-md focus:ring-2 ring-yellow-500" value={postType} onChange={e => setPostType(e.target.value)}>
+          <option value="general">📝 General Post</option>
+          <option value="trade">💰 Trade Block</option>
+          <option value="poll">📊 Poll</option>
+        </select>
+
         <input className="w-full bg-white text-black border px-3 py-2 rounded-md focus:ring-2 ring-yellow-500" placeholder="Your name" value={author} onChange={e => setAuthor(e.target.value)} />
 
         {postType === 'general' && <>
@@ -213,7 +212,10 @@ export default function MessageBoard() {
           <button onClick={() => setPollOptions([...pollOptions, ''])} className="text-sm text-blue-600 underline">Add Option</button>
         </>}
 
-        <button onClick={post} disabled={uploading} className="bg-yellow-500 text-black px-4 py-2 rounded-md hover:bg-yellow-600 disabled:opacity-50 mt-2">{uploading ? 'Posting…' : 'Post'}</button>
+        <div className="pt-2 text-gray-500">—</div>
+        <div className="pt-1">
+          <button onClick={post} disabled={uploading} className="bg-yellow-500 text-black px-4 py-2 rounded-md hover:bg-yellow-600 disabled:opacity-50">{uploading ? 'Posting…' : 'Post'}</button>
+        </div>
         {err && <p className="text-red-600">{err}</p>}
       </div>
 
@@ -225,15 +227,43 @@ export default function MessageBoard() {
               {msg.createdAtLocal && <p className="text-xs text-gray-500 ml-2">{formatTime(msg.createdAtLocal)}</p>}
             </div>
             {msg.postType === 'general' && msg.text && <p className="mb-2 whitespace-pre-wrap">{msg.text}</p>}
+            {msg.mediaUrl && msg.mediaType === 'image' && <img src={msg.mediaUrl} alt="" className="w-full rounded" />}
+            {msg.mediaUrl && msg.mediaType === 'video' && (
+              <div className="relative">
+                <video
+                  data-msgid={msg.id}
+                  ref={el => (videoRefs.current[msg.id] = el)}
+                  src={msg.mediaUrl}
+                  className="w-full max-h-[95vh] md:max-h-[650px] rounded cursor-pointer"
+                  autoPlay loop muted playsInline controls={false}
+                  onClick={() => setAudioOn(!audioOn)}
+                />
+                <div className="absolute top-1 right-1 bg-black/60 text-white text-xs px-1.5 py-0.5 rounded select-none pointer-events-none">
+                  {audioOn ? '🔊' : '🔇'}
+                </div>
+              </div>
+            )}
+            {msg.mediaUrl && msg.mediaType === 'embed-image' && <img src={msg.mediaUrl} alt="" className="w-full rounded" />}
+            {msg.mediaUrl && msg.mediaType === 'embed-video' && (
+              <div className="relative pb-[56.25%]">
+                <iframe
+                  src={msg.mediaUrl}
+                  className="absolute inset-0 w-full h-full rounded"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  title="embedded video"
+                />
+              </div>
+            )}
             {msg.postType === 'trade' && (
-              <div className="text-sm">
+              <div className="text-sm mt-2">
                 {msg.want && <p><strong>Wants:</strong> {msg.want}</p>}
                 {msg.give && <p><strong>Offering:</strong> {msg.give}</p>}
                 {msg.deadline && <p><strong>Deadline:</strong> {msg.deadline}</p>}
               </div>
             )}
             {msg.postType === 'poll' && (
-              <div>
+              <div className="mt-2">
                 {msg.pollQuestion && <p className="font-semibold mb-1">{msg.pollQuestion}</p>}
                 {msg.pollOptions?.map((opt, i) => (
                   <p key={i}>- {opt}</p>
