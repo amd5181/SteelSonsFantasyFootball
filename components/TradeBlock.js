@@ -23,8 +23,8 @@ export default function TradeBlock() {
 
   const fetchPosts = async () => {
     const snapshot = await getDocs(collection(db, 'tradeBlock'));
-    const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    data.sort((a, b) => b.createdAt?.seconds - a.createdAt?.seconds);
+    const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+    data.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
     setPosts(data);
   };
 
@@ -54,27 +54,34 @@ export default function TradeBlock() {
   };
 
   return (
-    <div className="p-4 max-w-3xl mx-auto space-y-8">
-      <form onSubmit={handleSubmit} className="space-y-4 border p-4 rounded-xl shadow">
+    <div
+      className="mt-24 p-4 max-w-3xl mx-auto space-y-8 overscroll-none bg-gray-100 dark:bg-neutral-900 min-h-screen"
+      style={{ overscrollBehavior: 'none' }}
+    >
+      {/* ─── Trade Post Form ──────────────────────────────────────────────── */}
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-4 border p-4 rounded-xl shadow bg-white dark:bg-zinc-800"
+      >
         <input
           placeholder="Manager Name"
           className="w-full p-2 border rounded"
           value={form.managerName}
-          onChange={e => setForm({ ...form, managerName: e.target.value })}
+          onChange={(e) => setForm({ ...form, managerName: e.target.value })}
           required
         />
         <input
           placeholder="Want (positions or players)"
           className="w-full p-2 border rounded"
           value={form.want}
-          onChange={e => setForm({ ...form, want: e.target.value })}
+          onChange={(e) => setForm({ ...form, want: e.target.value })}
           required
         />
         <input
           placeholder="Willing to Trade (positions or players)"
           className="w-full p-2 border rounded"
           value={form.willingToTrade}
-          onChange={e => setForm({ ...form, willingToTrade: e.target.value })}
+          onChange={(e) => setForm({ ...form, willingToTrade: e.target.value })}
           required
         />
         <textarea
@@ -82,30 +89,71 @@ export default function TradeBlock() {
           className="w-full p-2 border rounded"
           maxLength={500}
           value={form.comments}
-          onChange={e => setForm({ ...form, comments: e.target.value })}
+          onChange={(e) => setForm({ ...form, comments: e.target.value })}
         />
         <input
           type="date"
           className="w-full p-2 border rounded"
           value={form.deadline}
-          onChange={e => setForm({ ...form, deadline: e.target.value })}
+          onChange={(e) => setForm({ ...form, deadline: e.target.value })}
         />
-        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">Submit</button>
+        <button
+          type="submit"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        >
+          Submit
+        </button>
       </form>
 
-      {posts.map(post => (
-        <div key={post.id} className="border p-4 rounded-xl shadow space-y-2">
+      {/* ─── Trade Post Cards ─────────────────────────────────────────────── */}
+      {posts.map((post) => (
+        <div key={post.id} className="border p-4 rounded-xl shadow space-y-2 bg-white dark:bg-zinc-800">
           <div className="font-bold text-lg">{post.managerName}</div>
-          <div><strong>Want:</strong> {post.want}</div>
-          <div><strong>Willing to Trade:</strong> {post.willingToTrade}</div>
-          {post.comments && <div><strong>Comments:</strong> {post.comments}</div>}
-          {post.deadline && <div><strong>Offer Deadline:</strong> {new Date(post.deadline.seconds * 1000).toLocaleDateString()}</div>}
-          <div className="text-sm text-gray-500">Posted: {new Date(post.createdAt?.seconds * 1000).toLocaleString()}</div>
+          <div>
+            <strong>Want:</strong> {post.want}
+          </div>
+          <div>
+            <strong>Willing to Trade:</strong> {post.willingToTrade}
+          </div>
+          {post.comments && (
+            <div>
+              <strong>Comments:</strong> {post.comments}
+            </div>
+          )}
+          {post.deadline && (
+            <div>
+              <strong>Offer Deadline:</strong>{' '}
+              {post.deadline.seconds
+                ? new Date(post.deadline.seconds * 1000).toLocaleDateString()
+                : new Date(post.deadline).toLocaleDateString()}
+            </div>
+          )}
+          <div className="text-sm text-gray-500">
+            Posted:{' '}
+            {post.createdAt?.seconds
+              ? new Date(post.createdAt.seconds * 1000).toLocaleString()
+              : 'just now'}
+          </div>
 
           <div className="flex space-x-4 pt-2">
-            <button onClick={() => reactToPost(post.id, 'like')} className="hover:scale-110">❤️ {post.reactions?.like || 0}</button>
-            <button onClick={() => reactToPost(post.id, 'laugh')} className="hover:scale-110">😂 {post.reactions?.laugh || 0}</button>
-            <button onClick={() => reactToPost(post.id, 'dislike')} className="hover:scale-110">👎 {post.reactions?.dislike || 0}</button>
+            <button
+              onClick={() => reactToPost(post.id, 'like')}
+              className="hover:scale-110"
+            >
+              ❤️ {post.reactions?.like || 0}
+            </button>
+            <button
+              onClick={() => reactToPost(post.id, 'laugh')}
+              className="hover:scale-110"
+            >
+              😂 {post.reactions?.laugh || 0}
+            </button>
+            <button
+              onClick={() => reactToPost(post.id, 'dislike')}
+              className="hover:scale-110"
+            >
+              👎 {post.reactions?.dislike || 0}
+            </button>
           </div>
         </div>
       ))}
