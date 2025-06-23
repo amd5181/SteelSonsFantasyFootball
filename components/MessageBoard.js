@@ -37,7 +37,7 @@ export default function MessageBoard() {
 
   const videoRefs = useRef({});
   const visibleRatiosRef = useRef({});
-  const [audioOn, setAudioOn] = useState(false);
+  const [audioOnId, setAudioOnId] = useState(null);
   const [activeId, setActiveId] = useState(null);
 
   useEffect(() => {
@@ -69,11 +69,11 @@ export default function MessageBoard() {
   useEffect(() => {
     Object.entries(videoRefs.current).forEach(([id, el]) => {
       if (!el) return;
-      const shouldHaveAudio = audioOn && id === activeId;
+      const shouldHaveAudio = id === audioOnId && id === activeId;
       el.muted = !shouldHaveAudio;
       el.play().catch(() => {});
     });
-  }, [audioOn, activeId]);
+  }, [audioOnId, activeId]);
 
   useEffect(() => {
     Object.values(videoRefs.current).forEach(el => {
@@ -170,12 +170,16 @@ export default function MessageBoard() {
                   className="w-full max-h-[95vh] md:max-h-[650px] rounded cursor-pointer"
                   autoPlay loop muted playsInline controls={false}
                   onClick={() => {
-                    if (!audioOn) setAudioOn(true);
+                    if (audioOnId === msg.id) {
+                      setAudioOnId(null);
+                    } else {
+                      setAudioOnId(msg.id);
+                    }
                     setActiveId(msg.id);
                   }}
                 />
                 <div className="absolute top-1 right-1 bg-black/60 text-white text-xs px-1.5 py-0.5 rounded select-none pointer-events-none">
-                  {audioOn && activeId === msg.id ? '🔊' : '🔇'}
+                  {audioOnId === msg.id ? '🔊' : '🔇'}
                 </div>
               </div>
             )}
