@@ -2,8 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  @apply bg-white text-black;
+html, body {
+  @apply w-full overflow-x-hidden bg-white text-black;
   margin: 0;
   padding: 0;
 }
