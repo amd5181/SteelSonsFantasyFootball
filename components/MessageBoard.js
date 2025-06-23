@@ -132,16 +132,16 @@ export default function MessageBoard() {
     <div className="text-black w-full max-w-none px-0 sm:px-0">
       <h2 className="text-2xl font-bold mb-4 px-4 pt-6 text-center">Message Board</h2>
       <div className="space-y-2 mb-6 px-4">
-        <input className="w-full border px-3 py-2 rounded-md focus:ring-2 ring-blue-500" placeholder="Your name" value={author} onChange={e => setAuthor(e.target.value)} />
-        <textarea rows={3} className="w-full border px-3 py-2 rounded-md focus:ring-2 ring-blue-500" placeholder="Type your message…" value={newMsg} onChange={e => setNewMsg(e.target.value)} onKeyDown={e => e.key === 'Enter' && !e.shiftKey && post()} />
+        <input className="w-full bg-white text-black border px-3 py-2 rounded-md focus:ring-2 ring-yellow-500" placeholder="Your name" value={author} onChange={e => setAuthor(e.target.value)} />
+        <textarea rows={3} className="w-full bg-white text-black border px-3 py-2 rounded-md focus:ring-2 ring-yellow-500" placeholder="Type your message…" value={newMsg} onChange={e => setNewMsg(e.target.value)} onKeyDown={e => e.key === 'Enter' && !e.shiftKey && post()} />
         <div className="flex space-x-4 text-sm">
           {['upload', 'embed'].map(m => (
-            <button key={m} onClick={() => setMode(m)} className={`px-3 py-1 rounded-full ${mode === m ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}>{m === 'upload' ? 'Upload file' : 'Embed link'}</button>
+            <button key={m} onClick={() => setMode(m)} className={`px-3 py-1 rounded-full ${mode === m ? 'bg-yellow-500 text-black' : 'bg-white text-black border border-gray-300'}`}>{m === 'upload' ? 'Upload file' : 'Embed link'}</button>
           ))}
         </div>
         {mode === 'upload' && <input type="file" accept="image/*,video/*" onChange={e => setFile(e.target.files?.[0] || null)} />}
-        {mode === 'embed' && <input className="w-full border px-3 py-2 rounded-md focus:ring-2 ring-blue-500" placeholder="Paste image / GIF / YouTube / Vimeo URL…" value={embedURL} onChange={e => setEmbedURL(e.target.value)} />}
-        <button onClick={post} disabled={uploading} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50">{uploading ? 'Posting…' : 'Post'}</button>
+        {mode === 'embed' && <input className="w-full bg-white text-black border px-3 py-2 rounded-md focus:ring-2 ring-yellow-500" placeholder="Paste image / GIF / YouTube / Vimeo URL…" value={embedURL} onChange={e => setEmbedURL(e.target.value)} />}
+        <button onClick={post} disabled={uploading} className="bg-yellow-500 text-black px-4 py-2 rounded-md hover:bg-yellow-600 disabled:opacity-50">{uploading ? 'Posting…' : 'Post'}</button>
         {err && <p className="text-red-600">{err}</p>}
       </div>
       <div className="space-y-4 px-4">
