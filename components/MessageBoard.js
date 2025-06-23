@@ -129,10 +129,11 @@ export default function MessageBoard() {
   }).catch(console.error);
 
   return (
-    <div className="bg-white text-black px-2 sm:px-4 md:px-6 py-6 sm:rounded-lg shadow-md w-full max-w-none sm:max-w-2xl md:max-w-3xl lg:max-w-4xl mx-auto">
-      <h2 className="text-2xl font-bold mb-4">Message Board</h2>
-      <div className="space-y-2 mb-6">
+    <div className="text-black w-full max-w-none px-0 sm:px-0">
+      <h2 className="text-2xl font-bold mb-4 px-4 pt-6 text-center">Message Board</h2>
+      <div className="space-y-2 mb-6 px-4">
         <input className="w-full border px-3 py-2 rounded-md focus:ring-2 ring-blue-500" placeholder="Your name" value={author} onChange={e => setAuthor(e.target.value)} />
+        <textarea rows={3} className="w-full border px-3 py-2 rounded-md focus:ring-2 ring-blue-500" placeholder="Type your message…" value={newMsg} onChange={e => setNewMsg(e.target.value)} onKeyDown={e => e.key === 'Enter' && !e.shiftKey && post()} />
         <div className="flex space-x-4 text-sm">
           {['upload', 'embed'].map(m => (
             <button key={m} onClick={() => setMode(m)} className={`px-3 py-1 rounded-full ${mode === m ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}>{m === 'upload' ? 'Upload file' : 'Embed link'}</button>
@@ -140,13 +141,12 @@ export default function MessageBoard() {
         </div>
         {mode === 'upload' && <input type="file" accept="image/*,video/*" onChange={e => setFile(e.target.files?.[0] || null)} />}
         {mode === 'embed' && <input className="w-full border px-3 py-2 rounded-md focus:ring-2 ring-blue-500" placeholder="Paste image / GIF / YouTube / Vimeo URL…" value={embedURL} onChange={e => setEmbedURL(e.target.value)} />}
-        <input className="w-full border px-3 py-2 rounded-md focus:ring-2 ring-blue-500" placeholder="Type your message…" value={newMsg} onChange={e => setNewMsg(e.target.value)} onKeyDown={e => e.key === 'Enter' && post()} />
         <button onClick={post} disabled={uploading} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50">{uploading ? 'Posting…' : 'Post'}</button>
         {err && <p className="text-red-600">{err}</p>}
       </div>
-      <div className="space-y-4">
+      <div className="space-y-4 px-4">
         {messages.map(msg => (
-          <div key={msg.id} className="bg-gray-100 p-4 rounded-md">
+          <div key={msg.id} className="bg-white rounded-lg p-4">
             {msg.author && <p className="text-sm font-semibold text-gray-700 mb-1">{msg.author}</p>}
             {msg.text && <p className="mb-2 whitespace-pre-wrap">{msg.text}</p>}
             {msg.mediaUrl && msg.mediaType === 'image' && <img src={msg.mediaUrl} alt="" className="w-full rounded" />}
