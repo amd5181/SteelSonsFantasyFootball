@@ -129,7 +129,7 @@ export default function MessageBoard() {
   }).catch(console.error);
 
   return (
-    <div className="text-black w-full">
+    <div className="text-black w-full max-w-none">
       <h2 className="text-2xl font-bold mb-4 px-4 pt-6 text-center">Message Board</h2>
       <div className="space-y-2 mb-6 px-4">
         <input className="w-full border px-3 py-2 rounded-md focus:ring-2 ring-blue-500" placeholder="Your name" value={author} onChange={e => setAuthor(e.target.value)} />
