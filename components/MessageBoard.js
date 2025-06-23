@@ -20,6 +20,16 @@ import { db, storage } from '../lib/firebase';
 
 const EMOJIS = ['❤️', '😂', '🔥', '👎'];
 
+function formatTime(timestamp) {
+  const date = new Date(timestamp);
+  return date.toLocaleString(undefined, {
+    hour: '2-digit',
+    minute: '2-digit',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
 export default function MessageBoard() {
   const [messages, setMessages] = useState([]);
   const [author, setAuthor] = useState('');
@@ -139,8 +149,9 @@ export default function MessageBoard() {
             <button key={m} onClick={() => setMode(m)} className={`px-3 py-1 rounded-full ${mode === m ? 'bg-yellow-500 text-black' : 'bg-white text-black border border-gray-300'}`}>{m === 'upload' ? 'Upload file' : 'Embed link'}</button>
           ))}
         </div>
-        {mode === 'upload' && <input type="file" accept="image/*,video/*" className="text-black text-xs" onChange={e => setFile(e.target.files?.[0] || null)} />}
+        {mode === 'upload' && <input type="file" accept="image/*,video/*" className="text-black text-base" onChange={e => setFile(e.target.files?.[0] || null)} />}
         {mode === 'embed' && <input className="w-full bg-white text-black border px-3 py-2 rounded-md focus:ring-2 ring-yellow-500" placeholder="Paste image / GIF / YouTube / Vimeo URL…" value={embedURL} onChange={e => setEmbedURL(e.target.value)} />}
+        <div className="pt-2 text-white">—</div>
         <div className="pt-1">
           <button onClick={post} disabled={uploading} className="bg-yellow-500 text-black px-4 py-2 rounded-md hover:bg-yellow-600 disabled:opacity-50">{uploading ? 'Posting…' : 'Post'}</button>
         </div>
@@ -149,7 +160,10 @@ export default function MessageBoard() {
       <div className="space-y-4 px-4">
         {messages.map(msg => (
           <div key={msg.id} className="bg-white rounded-lg p-4">
-            {msg.author && <p className="text-sm font-semibold text-gray-700 mb-1">{msg.author}</p>}
+            <div className="flex justify-between items-center">
+              {msg.author && <p className="text-sm font-semibold text-gray-700 mb-1">{msg.author}</p>}
+              {msg.createdAtLocal && <p className="text-xs text-gray-500 ml-2">{formatTime(msg.createdAtLocal)}</p>}
+            </div>
             {msg.text && <p className="mb-2 whitespace-pre-wrap">{msg.text}</p>}
             {msg.mediaUrl && msg.mediaType === 'image' && <img src={msg.mediaUrl} alt="" className="w-full rounded" />}
             {msg.mediaUrl && msg.mediaType === 'video' && (
