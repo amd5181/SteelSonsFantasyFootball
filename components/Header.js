@@ -1,7 +1,19 @@
+'use client';
+import Link from 'next/link';
+import { useState, Fragment } from 'react';
+import { Dialog, Transition } from '@headlessui/react';
+import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+
+const navItems = [
+  { name: 'Message Board', path: '/' },
+  { name: 'Trade Block', path: '/trade-block' },
+  { name: 'League History', path: '/league-history' },
+];
+
+export default function Header() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="bg-gray-800 text-white shadow-md px-4 py-3 flex items-center justify-between">Add commentMore actions
     <header className="fixed top-0 left-0 right-0 z-50 bg-gray-800 text-white shadow-md px-4 py-3 flex items-center justify-between">
       <button onClick={() => setOpen(true)}>
         <Bars3Icon className="h-6 w-6 text-white" />
